@@ -809,6 +809,11 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   applyTemplate('editorial-gold');
 });
 
+// Botón guía Amazon KDP
+document.getElementById('kdpBtn').addEventListener('click', () => {
+  window.open('./amazon-kdp-guide.html', '_blank');
+});
+
 // ================================
 // PROMPTS SUGERIDOS PARA HIGGSFIELD
 // ================================
