@@ -928,6 +928,85 @@ function showToast(msg) {
 }
 
 // ================================
+// INTEGRACIÓN JOGA BOOK (postMessage API)
+// ================================
+// Cuando Joga Covers se abre en un iframe dentro de Joga Book,
+// se comunican por window.postMessage para pasar datos ida/vuelta
+//
+// Joga Book puede enviar:
+//   { type: 'JOGA_COVERS_INIT', title, subtitle, author, genre }
+// Joga Covers responde con:
+//   { type: 'JOGA_COVERS_READY' }
+//   { type: 'JOGA_COVERS_EXPORT', dataUrl, filename }
+
+const isEmbedded = window.self !== window.top;
+
+if (isEmbedded) {
+  // Notificar a Joga Book que ya estamos listos
+  window.parent.postMessage({ type: 'JOGA_COVERS_READY' }, '*');
+
+  // Escuchar comandos de Joga Book
+  window.addEventListener('message', (event) => {
+    const msg = event.data;
+    if (!msg || !msg.type) return;
+
+    if (msg.type === 'JOGA_COVERS_INIT') {
+      // Cargar título/subtítulo/autor del libro
+      if (msg.title) document.getElementById('titleInput').value = msg.title;
+      if (msg.subtitle) document.getElementById('subtitleInput').value = msg.subtitle;
+      if (msg.author) document.getElementById('authorInput').value = msg.author;
+
+      // Auto-elegir template por género
+      const genreToTemplate = {
+        'self-help': 'self-help',
+        'thriller': 'thriller',
+        'romance': 'romance',
+        'poetry': 'poetry',
+        'business': 'corporate',
+        'memoir': 'memoir',
+        'academic': 'dark-academic',
+        'children': 'children',
+        'fiction': 'editorial-gold',
+        'non-fiction': 'minimal-serif'
+      };
+      const tpl = genreToTemplate[msg.genre] || 'editorial-gold';
+      applyTemplate(tpl);
+    }
+
+    if (msg.type === 'JOGA_COVERS_REQUEST_EXPORT') {
+      const title = document.getElementById('titleInput').value.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+      const dataUrl = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2.667 });
+      window.parent.postMessage({
+        type: 'JOGA_COVERS_EXPORT',
+        dataUrl,
+        filename: `portada-${title}-${Date.now()}.png`,
+        meta: {
+          title: document.getElementById('titleInput').value,
+          subtitle: document.getElementById('subtitleInput').value,
+          author: document.getElementById('authorInput').value,
+          template: state.currentTemplate
+        }
+      }, '*');
+    }
+  });
+
+  // Añadir botón "Guardar en Joga Book" cuando estamos embebidos
+  document.addEventListener('DOMContentLoaded', () => {
+    const exportBtn = document.getElementById('exportBtn');
+    if (exportBtn) {
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'btn primary';
+      saveBtn.textContent = '💾 Guardar en Joga Book';
+      saveBtn.style.cssText = 'background: linear-gradient(135deg, #d4a744, #b8862c); margin-right: 8px;';
+      saveBtn.onclick = () => {
+        window.postMessage({ type: 'JOGA_COVERS_REQUEST_EXPORT' }, '*');
+      };
+      exportBtn.parentNode.insertBefore(saveBtn, exportBtn);
+    }
+  });
+}
+
+// ================================
 // INIT
 // ================================
 document.fonts.ready.then(() => {
