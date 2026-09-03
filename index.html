@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Joga Covers — Editor de Portadas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700;9..144,900&family=Playfair+Display:wght@400;700;900&family=Cormorant+Garamond:wght@300;500;700&family=Inter:wght@300;400;600;800&family=Bebas+Neue&family=Cinzel:wght@400;600;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #0f0e0d;
+      color: #f5f0e8;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 320px 1fr 320px;
+      grid-template-rows: 60px 1fr;
+      grid-template-areas:
+        "header header header"
+        "left canvas right";
+      overflow: hidden;
+      height: 100vh;
+    }
+    header {
+      grid-area: header;
+      background: #1a1815;
+      border-bottom: 1px solid #2d2925;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+    }
+    header h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    header .brand-dot {
+      width: 8px;
+      height: 8px;
+      background: #d4a744;
+      border-radius: 50%;
+    }
+    header .spacer { flex: 1; }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #3a3530;
+      background: transparent;
+      color: #f5f0e8;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+    .btn:hover { background: #2a2520; border-color: #4a4540; }
+    .btn.primary {
+      background: linear-gradient(135deg, #d4a744, #c19532);
+      border-color: #d4a744;
+      color: #1a1815;
+      font-weight: 600;
+    }
+    .btn.primary:hover { filter: brightness(1.1); }
+    .btn.canva {
+      background: linear-gradient(135deg, #00c4cc, #7d2ae8);
+      border-color: transparent;
+      color: white;
+      font-weight: 600;
+    }
+    .btn.canva:hover { filter: brightness(1.15); }
+
+    /* Modal Canva */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: #1a1815;
+      border: 1px solid #2d2925;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 520px;
+      width: calc(100% - 40px);
+      color: #f5f0e8;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: transparent;
+      border: none;
+      color: #8a827a;
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-close:hover { color: #f5f0e8; }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .modal-header .canva-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #00c4cc, #7d2ae8);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 900;
+      font-size: 18px;
+    }
+    .modal h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .modal-steps {
+      list-style: none;
+      counter-reset: step;
+      margin-bottom: 24px;
+    }
+    .modal-steps li {
+      counter-increment: step;
+      display: flex;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid #2d2925;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .modal-steps li:last-child { border-bottom: none; }
+    .modal-steps li::before {
+      content: counter(step);
+      background: linear-gradient(135deg, #00c4cc, #7d2ae8);
+      color: white;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .modal-steps strong { color: #f5f0e8; display: block; margin-bottom: 2px; }
+    .modal-steps span { color: #a8a09a; font-size: 12px; display: block; }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+    .modal-preset-select {
+      background: #0f0e0d;
+      border: 1px solid #2d2925;
+      color: #f5f0e8;
+      padding: 8px 12px;
+      border-radius: 6px;
+      width: 100%;
+      margin-bottom: 16px;
+      font-family: inherit;
+      font-size: 13px;
+    }
+    .modal-preset-label {
+      display: block;
+      font-size: 11px;
+      color: #a8a09a;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    aside {
+      background: #161311;
+      padding: 20px 18px;
+      overflow-y: auto;
+      border-right: 1px solid #2d2925;
+    }
+    aside.right { border-right: none; border-left: 1px solid #2d2925; }
+    aside h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #8a827a;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    aside section { margin-bottom: 28px; }
+
+    .canvas-area {
+      grid-area: canvas;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(ellipse at center, #1e1a17 0%, #0f0e0d 100%);
+      overflow: hidden;
+      position: relative;
+    }
+    .canvas-wrapper {
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    /* Templates de portada */
+    .templates {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .template-card {
+      aspect-ratio: 2/3;
+      background: #2a2520;
+      border: 2px solid transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+      transition: border-color 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      text-align: center;
+      color: #666;
+      padding: 8px;
+    }
+    .template-card:hover { border-color: #4a4540; }
+    .template-card.active { border-color: #d4a744; }
+    .template-card .preview {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 12px 8px;
+      gap: 4px;
+      color: white;
+    }
+    .template-card .tag {
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+      right: 4px;
+      background: rgba(0,0,0,0.5);
+      color: #d4a744;
+      font-size: 8px;
+      padding: 2px 4px;
+      border-radius: 3px;
+      text-align: center;
+    }
+
+    /* Backgrounds */
+    .backgrounds {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .bg-thumb {
+      aspect-ratio: 2/3;
+      background-size: cover;
+      background-position: center;
+      background-color: #2a2520;
+      border: 2px solid transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .bg-thumb.active { border-color: #d4a744; }
+    .bg-thumb:hover { border-color: #4a4540; }
+    .bg-thumb .label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.9));
+      color: white;
+      font-size: 10px;
+      padding: 12px 6px 6px;
+      text-align: center;
+    }
+    .bg-thumb.upload {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6a6560;
+      font-size: 24px;
+      background: #1a1815;
+    }
+    .bg-thumb.solid-gold {
+      background: linear-gradient(135deg, #f7d478, #b8862c);
+    }
+    .bg-thumb.solid-cream {
+      background: linear-gradient(135deg, #f5e9d0, #d4b884);
+    }
+    .bg-thumb.solid-black {
+      background: linear-gradient(135deg, #1a1815, #3a3530);
+    }
+    .bg-thumb.solid-burgundy {
+      background: linear-gradient(135deg, #4a1a1a, #8b3a3a);
+    }
+
+    /* Inputs */
+    label {
+      display: block;
+      font-size: 11px;
+      color: #a8a09a;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    input[type="text"], textarea, select {
+      width: 100%;
+      background: #0f0e0d;
+      border: 1px solid #2d2925;
+      color: #f5f0e8;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      transition: border-color 0.15s;
+    }
+    input[type="text"]:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #d4a744;
+    }
+    input[type="color"] {
+      width: 100%;
+      height: 36px;
+      background: transparent;
+      border: 1px solid #2d2925;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: #d4a744;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .field { margin-bottom: 14px; }
+    .field-inline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #a8a09a;
+      margin-bottom: 4px;
+    }
+
+    /* Prompt IA */
+    .ia-box {
+      background: #1a1815;
+      border: 1px solid #2d2925;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .ia-box textarea {
+      background: transparent;
+      border: none;
+      padding: 0;
+      font-size: 12px;
+      resize: none;
+      min-height: 60px;
+    }
+    .ia-box textarea:focus { outline: none; }
+    .ia-hint {
+      font-size: 10px;
+      color: #6a6560;
+      margin-top: 8px;
+      font-style: italic;
+    }
+
+    /* Scrollbar */
+    aside::-webkit-scrollbar { width: 6px; }
+    aside::-webkit-scrollbar-track { background: transparent; }
+    aside::-webkit-scrollbar-thumb { background: #2d2925; border-radius: 3px; }
+
+    .empty-state {
+      text-align: center;
+      color: #6a6560;
+      font-size: 11px;
+      padding: 20px;
+      background: #1a1815;
+      border-radius: 6px;
+      border: 1px dashed #2d2925;
+    }
+
+    /* Toolbar de texto seleccionado */
+    .selection-info {
+      background: #1a1815;
+      border: 1px solid #2d2925;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 11px;
+      color: #d4a744;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand-dot"></div>
+    <h1>Joga Covers</h1>
+    <div class="spacer"></div>
+    <button class="btn" id="resetBtn">Reset</button>
+    <button class="btn canva" id="canvaBtn">
+      <span style="display:inline-block;width:14px;height:14px;background:linear-gradient(135deg,#00c4cc,#7d2ae8);border-radius:3px;vertical-align:middle;margin-right:6px;"></span>
+      Continuar en Canva
+    </button>
+    <button class="btn primary" id="exportBtn">Descargar PNG</button>
+  </header>
+
+  <aside class="left">
+    <section>
+      <h3>1. Fondo</h3>
+      <div class="backgrounds" id="backgrounds">
+        <!-- llenado por JS -->
+      </div>
+      <input type="file" id="uploadBg" accept="image/*" style="display:none">
+    </section>
+
+    <section>
+      <h3>Generar con IA (Higgsfield)</h3>
+      <div class="ia-box">
+        <label style="font-size:10px;color:#8a827a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;display:block;">Sugerencia rápida por género</label>
+        <select id="promptPreset" class="modal-preset-select" style="margin-bottom:10px;">
+          <option value="">— elige un estilo —</option>
+          <option value="editorial-gold">Editorial dorado premium</option>
+          <option value="thriller-dark">Thriller oscuro cinematográfico</option>
+          <option value="romance-soft">Romance suave y etéreo</option>
+          <option value="poetry-abstract">Poesía abstracta minimalista</option>
+          <option value="corporate-clean">Corporativo limpio geométrico</option>
+          <option value="memoir-vintage">Memoir vintage nostálgico</option>
+          <option value="dark-academic">Dark Academic biblioteca</option>
+          <option value="children-illustration">Ilustración infantil colorida</option>
+          <option value="mindfulness">Mindfulness meditación</option>
+          <option value="business-modern">Business moderno tech</option>
+          <option value="self-help-bold">Self-help bold impacto</option>
+          <option value="fantasy-epic">Fantasía épica</option>
+        </select>
+        <textarea id="iaPrompt" placeholder="Describe la portada: colores, elementos, estilo, mood..."></textarea>
+        <button class="btn primary" id="iaGenerate" style="width:100%;margin-top:10px;padding:10px;">
+          ✨ Copiar prompt y abrir Higgsfield
+        </button>
+        <div class="ia-hint">Genera la imagen en Higgsfield → descarga → arrastra al canvas ↓</div>
+      </div>
+    </section>
+
+    <section>
+      <h3>2. Templates</h3>
+      <div class="templates" id="templates">
+        <!-- llenado por JS -->
+      </div>
+    </section>
+  </aside>
+
+  <div class="canvas-area">
+    <div class="canvas-wrapper">
+      <canvas id="canvas" width="600" height="900"></canvas>
+    </div>
+  </div>
+
+  <aside class="right">
+    <section>
+      <h3>3. Contenido</h3>
+      <div class="field">
+        <label>Título</label>
+        <input type="text" id="titleInput" value="El Despertar Interior">
+      </div>
+      <div class="field">
+        <label>Subtítulo</label>
+        <input type="text" id="subtitleInput" value="Un viaje hacia la claridad mental">
+      </div>
+      <div class="field">
+        <label>Autor</label>
+        <input type="text" id="authorInput" value="Joga">
+      </div>
+    </section>
+
+    <section>
+      <h3>Tipografía</h3>
+      <div class="field">
+        <label>Fuente del título</label>
+        <select id="titleFont">
+          <option value="Fraunces">Fraunces</option>
+          <option value="Playfair Display">Playfair Display</option>
+          <option value="Cormorant Garamond">Cormorant Garamond</option>
+          <option value="Cinzel">Cinzel</option>
+          <option value="Bebas Neue">Bebas Neue</option>
+          <option value="Inter">Inter</option>
+        </select>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Color título</label>
+          <input type="color" id="titleColor" value="#f5f0e8">
+        </div>
+        <div class="field">
+          <label>Color autor</label>
+          <input type="color" id="authorColor" value="#d4a744">
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-inline">
+          <span>Tamaño título</span>
+          <span id="titleSizeValue">72</span>
+        </div>
+        <input type="range" id="titleSize" min="24" max="140" value="72">
+      </div>
+      <div class="field">
+        <div class="field-inline">
+          <span>Espaciado letras</span>
+          <span id="titleSpacingValue">0</span>
+        </div>
+        <input type="range" id="titleSpacing" min="-50" max="500" value="0">
+      </div>
+    </section>
+
+    <section>
+      <h3>Efectos</h3>
+      <div class="field">
+        <div class="field-inline">
+          <span>Oscurecer fondo</span>
+          <span id="overlayValue">30%</span>
+        </div>
+        <input type="range" id="overlayOpacity" min="0" max="90" value="30">
+      </div>
+      <div class="field">
+        <div class="field-inline">
+          <span>Sombra texto</span>
+          <span id="shadowValue">6</span>
+        </div>
+        <input type="range" id="titleShadow" min="0" max="30" value="6">
+      </div>
+    </section>
+  </aside>
+
+  <!-- Modal Canva -->
+  <div class="modal-overlay" id="canvaModal">
+    <div class="modal">
+      <button class="modal-close" id="modalClose">×</button>
+      <div class="modal-header">
+        <div class="canva-logo">C</div>
+        <h2>Continuar en Canva</h2>
+      </div>
+      <p style="color:#a8a09a;font-size:13px;margin-bottom:20px;line-height:1.5;">
+        Vamos a descargar tu diseño actual y abrir Canva con el template ideal para portadas de libro. Podrás editar todo con las herramientas premium de Canva.
+      </p>
+
+      <label class="modal-preset-label">Estilo de template en Canva</label>
+      <select id="canvaPreset" class="modal-preset-select">
+        <option value="book-covers">Portadas de libro (genérico)</option>
+        <option value="ebook-cover">Portada de eBook</option>
+        <option value="kindle-cover">Portada Kindle (2:3)</option>
+        <option value="wattpad-cover">Portada Wattpad</option>
+        <option value="magazine-cover">Portada de revista</option>
+      </select>
+
+      <ul class="modal-steps">
+        <li>
+          <div>
+            <strong>Descargamos tu portada actual como PNG</strong>
+            <span>Se guarda en tu carpeta de Descargas — la usarás en Canva</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Abrimos Canva con el template elegido</strong>
+            <span>Ya con dimensiones correctas y templates filtrados por libro</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>En Canva: Uploads → tu PNG</strong>
+            <span>La usas como fondo o punto de partida — con acceso a todos los assets de Canva</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Descargas la versión final desde Canva</strong>
+            <span>Alta resolución, lista para Amazon KDP, IngramSpark o donde publiques</span>
+          </div>
+        </li>
+      </ul>
+
+      <div class="modal-actions">
+        <button class="btn" id="modalCancel">Cancelar</button>
+        <button class="btn canva" id="modalContinue">Descargar y abrir Canva</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

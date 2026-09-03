@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Joga Book × Canva — Integración</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f0e0d;
+      color: #f5f0e8;
+      padding: 40px 32px 60px;
+      min-height: 100vh;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 42px;
+      font-weight: 900;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #f5f0e8 20%, #d4a744 80%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    header p { color: #a8a09a; font-size: 15px; max-width: 640px; margin: 0 auto; }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 60px;
+    }
+    .option {
+      background: #1a1815;
+      border: 1px solid #2d2925;
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .option-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #2d2925;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .option-badge {
+      background: #d4a744;
+      color: #1a1815;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .option-badge.medium { background: #4a90e2; color: white; }
+    .option-badge.easy { background: #4ec969; color: white; }
+    .option h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 700;
+      flex: 1;
+    }
+    .option-body { padding: 24px; flex: 1; }
+
+    /* Mock UI de Joga Book */
+    .app-mockup {
+      background: #0f0e0d;
+      border: 1px solid #2d2925;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+      font-size: 12px;
+    }
+    .app-mockup-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #2d2925;
+      margin-bottom: 12px;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #3a3530; }
+    .dot.gold { background: #d4a744; }
+    .app-title {
+      font-family: 'Fraunces', serif;
+      font-weight: 700;
+      color: #d4a744;
+      font-size: 13px;
+    }
+
+    /* Flow steps */
+    .flow {
+      list-style: none;
+      counter-reset: step;
+    }
+    .flow li {
+      counter-increment: step;
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #2d2925;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .flow li:last-child { border-bottom: none; }
+    .flow li::before {
+      content: counter(step);
+      background: #d4a744;
+      color: #1a1815;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+    .flow strong { color: #f5f0e8; display: block; margin-bottom: 2px; }
+    .flow span { color: #a8a09a; font-size: 12px; }
+
+    .btn-mock {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #00c4cc, #7d2ae8);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      margin: 4px 0;
+    }
+    .btn-mock.gold {
+      background: linear-gradient(135deg, #d4a744, #b8862c);
+      color: #1a1815;
+    }
+    .btn-mock.ghost {
+      background: transparent;
+      border: 1px solid #3a3530;
+      color: #a8a09a;
+    }
+
+    .divider-label {
+      text-align: center;
+      color: #6a6560;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin: 16px 0 12px;
+      position: relative;
+    }
+    .divider-label::before, .divider-label::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 30%;
+      height: 1px;
+      background: #2d2925;
+    }
+    .divider-label::before { left: 0; }
+    .divider-label::after { right: 0; }
+
+    /* Bottom: comparación */
+    .comparison {
+      background: #1a1815;
+      border: 1px solid #2d2925;
+      border-radius: 16px;
+      padding: 32px;
+      margin-top: 40px;
+    }
+    .comparison h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid #2d2925;
+    }
+    th {
+      color: #d4a744;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+    td:first-child {
+      color: #a8a09a;
+      font-weight: 500;
+    }
+    .check { color: #4ec969; font-weight: 600; }
+    .cross { color: #e56b5b; font-weight: 600; }
+    .mid { color: #d4a744; font-weight: 600; }
+
+    .cta-final {
+      text-align: center;
+      margin-top: 40px;
+    }
+    .cta-final h3 {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+    .cta-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .cta {
+      background: linear-gradient(135deg, #d4a744, #b8862c);
+      color: #1a1815;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .cta:hover { transform: translateY(-2px); }
+    .cta.secondary {
+      background: transparent;
+      border: 1px solid #3a3530;
+      color: #f5f0e8;
+    }
+
+    .mockup-preview {
+      background: linear-gradient(135deg, #f7d478 0%, #b8862c 100%);
+      aspect-ratio: 2/3;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      margin: 12px 0;
+      text-align: center;
+      color: #1a1815;
+      position: relative;
+      overflow: hidden;
+    }
+    .mockup-preview::before {
+      content: '◆';
+      color: #b8862c;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+    .mockup-preview .mock-title {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .mockup-preview .mock-subtitle {
+      font-style: italic;
+      font-size: 10px;
+      color: #4a3818;
+      margin-bottom: auto;
+    }
+    .mockup-preview .mock-author {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      margin-top: 30px;
+    }
+
+    /* Highlight Canva branding en la opción 1 */
+    .canva-branding {
+      background: linear-gradient(135deg, #00c4cc 0%, #7d2ae8 100%);
+      padding: 12px;
+      border-radius: 8px;
+      color: white;
+      font-size: 12px;
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .canva-logo {
+      width: 24px;
+      height: 24px;
+      background: white;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: #00c4cc;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Joga Book × Canva</h1>
+      <p>Tres formas de integrar Canva al flujo de creación de portadas. Elige la que se ajusta mejor al momento y presupuesto de Joga Book.</p>
+    </header>
+
+    <div class="options-grid">
+      <!-- ============================== -->
+      <!-- OPCIÓN 1: Canva Connect API -->
+      <!-- ============================== -->
+      <div class="option">
+        <div class="option-header">
+          <span class="option-badge">PRO</span>
+          <h2>Canva Connect API</h2>
+        </div>
+        <div class="option-body">
+          <div class="canva-branding">
+            <div class="canva-logo">C</div>
+            <div>
+              <div style="font-weight:700;">Integración oficial</div>
+              <div style="font-size:10px;opacity:0.85;">connect.canva.com</div>
+            </div>
+          </div>
+
+          <div class="app-mockup">
+            <div class="app-mockup-header">
+              <div class="dot"></div>
+              <div class="dot"></div>
+              <div class="dot gold"></div>
+              <div class="app-title">Joga Book — Portada</div>
+            </div>
+            <div style="font-size:11px;color:#a8a09a;margin-bottom:10px;">
+              Libro: "El Despertar Interior"
+            </div>
+            <div class="btn-mock">🎨 Diseñar en Canva</div>
+            <div style="font-size:10px;color:#6a6560;margin-top:6px;">
+              Se abre Canva con template pre-cargado, título y autor ya llenados
+            </div>
+            <div class="divider-label">al terminar</div>
+            <div class="btn-mock gold">💾 Guardar en Joga Book</div>
+            <div class="mockup-preview">
+              <div class="mock-title">El Despertar<br>Interior</div>
+              <div class="mock-subtitle">Un viaje hacia la claridad</div>
+              <div class="mock-author">JOGA</div>
+            </div>
+          </div>
+
+          <ul class="flow">
+            <li><div><strong>Usuario clic en "Diseñar en Canva"</strong><span>Joga Book llama la API, obtiene un URL de sesión</span></div></li>
+            <li><div><strong>Se abre Canva pre-cargado</strong><span>Con template de libro filtrado por género, título ya escrito</span></div></li>
+            <li><div><strong>Usuario ajusta libremente</strong><span>Miles de templates, imágenes, fuentes profesionales</span></div></li>
+            <li><div><strong>Botón "Enviar a Joga Book"</strong><span>Canva regresa el diseño terminado vía webhook</span></div></li>
+            <li><div><strong>Aparece automático en su libro</strong><span>Guardado en Supabase Storage, listo para publicar</span></div></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- OPCIÓN 2: Deep Link -->
+      <!-- ============================== -->
+      <div class="option">
+        <div class="option-header">
+          <span class="option-badge easy">FÁCIL</span>
+          <h2>Deep Link a Canva</h2>
+        </div>
+        <div class="option-body">
+          <div class="canva-branding">
+            <div class="canva-logo">C</div>
+            <div>
+              <div style="font-weight:700;">Enlace inteligente</div>
+              <div style="font-size:10px;opacity:0.85;">canva.com/create/book-covers</div>
+            </div>
+          </div>
+
+          <div class="app-mockup">
+            <div class="app-mockup-header">
+              <div class="dot"></div>
+              <div class="dot"></div>
+              <div class="dot gold"></div>
+              <div class="app-title">Joga Book — Portada</div>
+            </div>
+            <div style="font-size:11px;color:#a8a09a;margin-bottom:10px;">
+              Libro: "El Despertar Interior"
+            </div>
+            <div class="btn-mock gold">✨ Generar arte con IA (Higgsfield)</div>
+            <div style="font-size:10px;color:#6a6560;margin-bottom:8px;">
+              Descarga la imagen automática
+            </div>
+            <div class="btn-mock">🎨 Continuar diseño en Canva →</div>
+            <div style="font-size:10px;color:#6a6560;margin-top:6px;">
+              Abre Canva en nueva pestaña, template ya listo
+            </div>
+            <div class="divider-label">al terminar</div>
+            <div class="btn-mock ghost">📤 Subir portada terminada</div>
+            <div class="mockup-preview">
+              <div class="mock-title">El Despertar<br>Interior</div>
+              <div class="mock-subtitle">Un viaje hacia la claridad</div>
+              <div class="mock-author">JOGA</div>
+            </div>
+          </div>
+
+          <ul class="flow">
+            <li><div><strong>IA genera arte de portada</strong><span>Higgsfield produce imagen editorial dorada</span></div></li>
+            <li><div><strong>Descarga automática de la imagen</strong><span>Se guarda en /descargas del usuario</span></div></li>
+            <li><div><strong>Botón "Continuar en Canva" abre deep-link</strong><span>Canva pre-filtra template de libro con las dimensiones correctas</span></div></li>
+            <li><div><strong>Usuario sube su imagen IA a Canva</strong><span>La usa como fondo, edita título con fuentes premium</span></div></li>
+            <li><div><strong>Descarga PNG desde Canva</strong><span>Sube manualmente a Joga Book</span></div></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ============================== -->
+      <!-- OPCIÓN 3: Editor propio + Canva -->
+      <!-- ============================== -->
+      <div class="option">
+        <div class="option-header">
+          <span class="option-badge medium">HÍBRIDO</span>
+          <h2>Editor propio + Canva</h2>
+        </div>
+        <div class="option-body">
+          <div style="background:#0f0e0d;border:1px solid #2d2925;border-radius:8px;padding:12px;margin-bottom:12px;">
+            <div style="font-size:11px;color:#d4a744;font-weight:600;margin-bottom:6px;">✓ Joga Covers (nativo, rápido)</div>
+            <div style="font-size:11px;color:#00c4cc;">✓ Canva (potencia máxima, opcional)</div>
+          </div>
+
+          <div class="app-mockup">
+            <div class="app-mockup-header">
+              <div class="dot"></div>
+              <div class="dot"></div>
+              <div class="dot gold"></div>
+              <div class="app-title">Joga Book — Portada</div>
+            </div>
+            <div style="font-size:11px;color:#a8a09a;margin-bottom:10px;">
+              Libro: "El Despertar Interior"
+            </div>
+            <div class="btn-mock gold">⚡ Editor Joga Covers</div>
+            <div style="font-size:10px;color:#6a6560;margin-bottom:8px;">
+              6 templates premium, 30 segundos, portada lista
+            </div>
+            <div class="divider-label">o si quieres más control</div>
+            <div class="btn-mock">🎨 Abrir en Canva</div>
+            <div style="font-size:10px;color:#6a6560;margin-top:6px;">
+              Editor avanzado con miles de assets
+            </div>
+            <div class="mockup-preview">
+              <div class="mock-title">El Despertar<br>Interior</div>
+              <div class="mock-subtitle">Un viaje hacia la claridad</div>
+              <div class="mock-author">JOGA</div>
+            </div>
+          </div>
+
+          <ul class="flow">
+            <li><div><strong>Usuario elige "Rápido" o "Avanzado"</strong><span>UI clara desde el primer momento</span></div></li>
+            <li><div><strong>Rápido: Joga Covers (integrado)</strong><span>Portada en 30 seg con IA + template</span></div></li>
+            <li><div><strong>Avanzado: se abre Canva</strong><span>Para usuarios que quieren personalizar todo</span></div></li>
+            <li><div><strong>Ambos flujos guardan en Joga Book</strong><span>Historial de versiones unificado</span></div></li>
+            <li><div><strong>Freemium natural</strong><span>Joga Covers gratis, Canva Pro como upsell</span></div></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla comparativa -->
+    <div class="comparison">
+      <h2>Comparación rápida</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Aspecto</th>
+            <th>Canva Connect API</th>
+            <th>Deep Link</th>
+            <th>Editor + Canva</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Tiempo hasta demo</td>
+            <td class="mid">2-3 semanas</td>
+            <td class="check">Hoy mismo</td>
+            <td class="mid">1 semana</td>
+          </tr>
+          <tr>
+            <td>Complejidad técnica</td>
+            <td class="cross">Alta (OAuth + webhooks)</td>
+            <td class="check">Baja (link HTML)</td>
+            <td class="mid">Media</td>
+          </tr>
+          <tr>
+            <td>Costo desarrollo</td>
+            <td class="cross">$$$ (API + backend)</td>
+            <td class="check">$ (0 backend)</td>
+            <td class="mid">$$ (editor + link)</td>
+          </tr>
+          <tr>
+            <td>Costo mensual Canva</td>
+            <td class="mid">Free tier limitado</td>
+            <td class="check">Usuario paga su Canva</td>
+            <td class="check">Usuario paga su Canva</td>
+          </tr>
+          <tr>
+            <td>Experiencia de usuario</td>
+            <td class="check">Sin salir de Joga Book</td>
+            <td class="cross">Cambia de pestaña</td>
+            <td class="check">Elige nivel de control</td>
+          </tr>
+          <tr>
+            <td>Templates disponibles</td>
+            <td class="check">Miles (Canva)</td>
+            <td class="check">Miles (Canva)</td>
+            <td class="check">6 nativos + miles Canva</td>
+          </tr>
+          <tr>
+            <td>Requiere cuenta Canva usuario</td>
+            <td class="check">Opcional (guest mode)</td>
+            <td class="cross">Sí, obligatoria</td>
+            <td class="mid">Solo si usa Canva</td>
+          </tr>
+          <tr>
+            <td>Se mantiene con el tiempo</td>
+            <td class="mid">Depende de API Canva</td>
+            <td class="check">Muy estable</td>
+            <td class="check">Muy estable</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cta-final">
+      <h3>¿Cuál construimos?</h3>
+      <div class="cta-buttons">
+        <button class="cta" data-hermes-send="Vamos con la Opción 1: Canva Connect API. Guíame para registrarme como desarrollador de Canva y empezar la integración oficial.">1️⃣ Canva Connect API (pro)</button>
+        <button class="cta" data-hermes-send="Vamos con la Opción 2: Deep Link a Canva. Impleméntalo hoy mismo en el editor Joga Covers.">2️⃣ Deep Link (hoy mismo)</button>
+        <button class="cta" data-hermes-send="Vamos con la Opción 3: Editor propio + botón Canva como avanzado. Agrégalo a Joga Covers.">3️⃣ Editor + Canva (híbrido)</button>
+        <button class="cta secondary" data-hermes-send="Muéstrame más detalles sobre cómo funcionaría cada opción antes de decidir.">Explícame más</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
