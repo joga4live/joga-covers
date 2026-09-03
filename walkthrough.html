@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Joga Books → Joga Covers: Video Walkthrough</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(180deg, #0a0908 0%, #1a1815 100%);
+      color: #f5f0e8;
+      line-height: 1.6;
+    }
+    
+    .hero {
+      padding: 80px 20px;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(26, 24, 21, 0.9) 100%);
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 56px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #d4af37;
+      text-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+    }
+    
+    .hero p {
+      font-size: 20px;
+      color: rgba(245, 240, 232, 0.85);
+      max-width: 800px;
+      margin: 0 auto 30px;
+    }
+    
+    .hero .badge {
+      display: inline-block;
+      padding: 8px 16px;
+      background: rgba(212, 175, 55, 0.15);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #d4af37;
+      margin-bottom: 30px;
+    }
+    
+    .timeline {
+      max-width: 1200px;
+      margin: 60px auto;
+      padding: 0 40px;
+    }
+    
+    .scene {
+      margin-bottom: 80px;
+      position: relative;
+    }
+    
+    .scene::before {
+      content: '';
+      position: absolute;
+      left: 30px;
+      top: 60px;
+      bottom: -60px;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(212, 175, 55, 0.5), rgba(212, 175, 55, 0.1));
+    }
+    
+    .scene:last-child::before {
+      display: none;
+    }
+    
+    .scene-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    
+    .scene-number {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #d4af37, #f4e4c1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1815;
+      margin-right: 20px;
+      box-shadow: 0 8px 24px rgba(212, 175, 55, 0.3);
+      position: relative;
+      z-index: 2;
+    }
+    
+    .scene-title {
+      flex: 1;
+    }
+    
+    .scene-title h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: #f5f0e8;
+      margin-bottom: 5px;
+    }
+    
+    .scene-title .time {
+      font-size: 14px;
+      color: rgba(212, 175, 55, 0.8);
+      font-weight: 600;
+    }
+    
+    .scene-content {
+      margin-left: 80px;
+      background: rgba(45, 42, 37, 0.5);
+      border: 1px solid rgba(212, 175, 55, 0.15);
+      border-radius: 12px;
+      padding: 40px;
+    }
+    
+    .scene-content p {
+      font-size: 18px;
+      color: rgba(245, 240, 232, 0.9);
+      margin-bottom: 20px;
+      line-height: 1.7;
+    }
+    
+    .scene-content .narration {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(212, 175, 55, 0.02));
+      border-left: 4px solid #d4af37;
+      padding: 20px 24px;
+      margin: 30px 0;
+      border-radius: 8px;
+      font-style: italic;
+      color: rgba(245, 240, 232, 0.95);
+      font-size: 17px;
+    }
+    
+    .scene-content .screenshot {
+      margin: 30px 0;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    
+    .scene-content .screenshot img {
+      width: 100%;
+      display: block;
+    }
+    
+    .scene-content .screenshot-caption {
+      text-align: center;
+      font-size: 14px;
+      color: rgba(245, 240, 232, 0.6);
+      margin-top: 12px;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin: 25px 0;
+    }
+    
+    .action-item {
+      padding: 12px 20px;
+      background: rgba(212, 175, 55, 0.1);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 8px;
+      font-size: 15px;
+      color: #f4e4c1;
+      font-weight: 500;
+    }
+    
+    .action-item.primary {
+      background: linear-gradient(135deg, #d4af37, #f4e4c1);
+      color: #1a1815;
+      font-weight: 600;
+      border: none;
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 30px 0;
+    }
+    
+    .feature-card {
+      background: rgba(26, 24, 21, 0.6);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 8px;
+      padding: 24px;
+    }
+    
+    .feature-card h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: #d4af37;
+      margin-bottom: 10px;
+    }
+    
+    .feature-card p {
+      font-size: 15px;
+      color: rgba(245, 240, 232, 0.8);
+      margin: 0;
+    }
+    
+    .cta-final {
+      margin: 80px 40px;
+      padding: 60px;
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(26, 24, 21, 0.8));
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 16px;
+      text-align: center;
+    }
+    
+    .cta-final h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 44px;
+      color: #f5f0e8;
+      margin-bottom: 20px;
+    }
+    
+    .cta-final p {
+      font-size: 20px;
+      color: rgba(245, 240, 232, 0.85);
+      margin-bottom: 40px;
+    }
+    
+    .cta-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 16px 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #d4af37, #f4e4c1);
+      color: #1a1815;
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(212, 175, 55, 0.6);
+    }
+    
+    .btn-secondary {
+      background: rgba(245, 240, 232, 0.1);
+      border: 2px solid rgba(245, 240, 232, 0.3);
+      color: #f5f0e8;
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(245, 240, 232, 0.15);
+      border-color: rgba(245, 240, 232, 0.5);
+    }
+    
+    .specs {
+      margin: 60px 40px;
+      padding: 40px;
+      background: rgba(26, 24, 21, 0.5);
+      border: 1px solid rgba(212, 175, 55, 0.15);
+      border-radius: 12px;
+    }
+    
+    .specs h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      color: #d4af37;
+      margin-bottom: 20px;
+    }
+    
+    .specs ul {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .specs li {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+      font-size: 16px;
+      color: rgba(245, 240, 232, 0.9);
+    }
+    
+    .specs li strong {
+      color: #d4af37;
+      font-weight: 600;
+      margin-right: 10px;
+    }
+    
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 38px;
+      }
+      
+      .scene-content {
+        margin-left: 0;
+        padding: 24px;
+      }
+      
+      .scene::before {
+        display: none;
+      }
+      
+      .timeline {
+        padding: 0 20px;
+      }
+      
+      .cta-final {
+        padding: 40px 20px;
+      }
+      
+      .cta-final h2 {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="badge">🎬 VIDEO WALKTHROUGH INTERACTIVO</div>
+    <h1>Joga Books → Joga Covers</h1>
+    <p>Flujo completo: de libro terminado a portada profesional en 3 minutos</p>
+  </div>
+
+  <div class="timeline">
+
+    <!-- ESCENA 1 -->
+    <div class="scene">
+      <div class="scene-header">
+        <div class="scene-number">1</div>
+        <div class="scene-title">
+          <h2>Landing Joga Books</h2>
+          <div class="time">0:00 - 0:40</div>
+        </div>
+      </div>
+      <div class="scene-content">
+        <p>El usuario comienza en la landing page de Joga Books — una plataforma de escritura con IA que convierte experiencias en libros completos de no ficción.</p>
+        
+        <div class="features-grid">
+          <div class="feature-card">
+            <h4>📝 Outline Inteligente</h4>
+            <p>IA genera estructura completa de 8-15 capítulos basada en tu expertise</p>
+          </div>
+          <div class="feature-card">
+            <h4>✍️ Escritura IA</h4>
+            <p>Cada capítulo escrito automáticamente en tu tono y voz</p>
+          </div>
+          <div class="feature-card">
+            <h4>🎭 Humanizador</h4>
+            <p>Paso único que transforma texto IA en prosa con alma humana</p>
+          </div>
+        </div>
+        
+        <div class="narration">
+          "Joga Books te lleva de una idea a un libro completo en menos de una hora. Outline, escritura de capítulos, y humanizado — todo integrado en una sola plataforma."
+        </div>
+        
+        <div class="actions">
+          <div class="action-item primary">✨ Ingresar código de acceso</div>
+          <div class="action-item">Ver dashboard con mis libros</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ESCENA 2 -->
+    <div class="scene">
+      <div class="scene-header">
+        <div class="scene-number">2</div>
+        <div class="scene-title">
+          <h2>Libro Terminado</h2>
+          <div class="time">0:40 - 1:00</div>
+        </div>
+      </div>
+      <div class="scene-content">
+        <p>Después de escribir y humanizar 12 capítulos, el usuario accede a la pantalla de exportar su libro terminado.</p>
+        
+        <div class="actions">
+          <div class="action-item">📋 Copiar todo el texto</div>
+          <div class="action-item">💾 Descargar como .txt</div>
+          <div class="action-item">📤 Compartir outline</div>
+          <div class="action-item primary">🎨 Diseñar portada del libro ← NUEVO</div>
+        </div>
+        
+        <div class="narration">
+          "Una vez que el libro está completo, el usuario puede copiarlo, descargarlo... y ahora, diseñar la portada profesional con un solo clic. El botón abre Joga Covers en nueva pestaña con título y subtítulo precargados automáticamente."
+        </div>
+        
+        <p style="font-size: 16px; color: rgba(212, 175, 55, 0.9); margin-top: 20px;">
+          <strong>Ejemplo:</strong> "El Poder del Hábito Digital" — Self-help · Profesionales · 12 capítulos
+        </p>
+      </div>
+    </div>
+
+    <!-- ESCENA 3 -->
+    <div class="scene">
+      <div class="scene-header">
+        <div class="scene-number">3</div>
+        <div class="scene-title">
+          <h2>Editor Joga Covers</h2>
+          <div class="time">1:00 - 1:20</div>
+        </div>
+      </div>
+      <div class="scene-content">
+        <p>El editor se abre instantáneamente con el título y subtítulo del libro ya cargados. Todo listo para empezar a diseñar — cero trabajo manual.</p>
+        
+        <div class="screenshot">
+          <img src="https://raw.githubusercontent.com/joga4live/joga-covers/main/backgrounds/selfhelp.png" alt="Editor Joga Covers con datos precargados">
+          <div class="screenshot-caption">Canvas 600×900 (2:3) con título/subtítulo precargados + template Editorial Gold</div>
+        </div>
+        
+        <div class="features-grid">
+          <div class="feature-card">
+            <h4>Panel izquierdo</h4>
+            <p>4 gradientes + 4 portadas IA ejemplo + 13 templates profesionales</p>
+          </div>
+          <div class="feature-card">
+            <h4>Canvas central</h4>
+            <p>Diseño en vivo, 600×900 (aspect ratio 2:3 perfecto para libros)</p>
+          </div>
+          <div class="feature-card">
+            <h4>Panel derecho</h4>
+            <p>Controles: fuente, colores, tamaños, espaciado, overlay, sombra</p>
+          </div>
+        </div>
+        
+        <div class="narration">
+          "13 templates diseñados específicamente para no ficción: Editorial, Self-Help, Business, Mindfulness, Memoir, Corporate, Dark Academic, Poesía, Infantil... cada uno con tipografía, layout y colores únicos."
+        </div>
+      </div>
+    </div>
+
+    <!-- ESCENA 4 -->
+    <div class="scene">
+      <div class="scene-header">
+        <div class="scene-number">4</div>
+        <div class="scene-title">
+          <h2>Explorar Templates</h2>
+          <div class="time">1:20 - 1:40</div>
+        </div>
+      </div>
+      <div class="scene-content">
+        <p>El usuario explora diferentes templates para ver opciones. Cada clic actualiza instantáneamente tipografía, colores y layout en el canvas.</p>
+        
+        <div class="actions">
+          <div class="action-item">Self-Help → Título XL, bold, impacto máximo</div>
+          <div class="action-item">Minimalista → Clean, título arriba, sin ornamentos</div>
+          <div class="action-item">Dark Academic → Cinzel, ornamento ⚜, scholarly</div>
+          <div class="action-item primary">Editorial Gold → El ganador (serif elegante)</div>
+        </div>
+        
+        <div class="narration">
+          "Fraunces, Playfair Display, Cormorant Garamond, Inter, Cinzel... cada template usa fuentes premium cargadas desde Google Fonts. El usuario solo hace clic y ve el resultado al instante."
+        </div>
+      </div>
+    </div>
+
+    <!-- ESCENA 5 -->
+    <div class="scene">
+      <div class="scene-header">
+        <div class="scene-number">5</div>
+        <div class="scene-title">
+          <h2>Aplicar Portada con IA</h2>
+          <div class="time">1:40 - 2:00</div>
+        </div>
+      </div>
+      <div class="scene-content">
+        <p>Para un libro de self-help sobre hábitos digitales, el usuario elige una de las 4 portadas ejemplo generadas con ChatGPT — una silueta transformándose con explosión de luz dorada.</p>
+        
+        <div class="screenshot">
+          <img src="https://raw.githubusercontent.com/joga4live/joga-covers/main/backgrounds/selfhelp.png" alt="Portada Self-Help con IA">
+          <div class="screenshot-caption">Imagen generada con ChatGPT: silueta humana con energía dorada sobre fondo oscuro</div>
+        </div>
+        
+        <div class="actions">
+          <div class="action-item primary">Clic en portada "Self-Help" → fondo actualizado</div>
+          <div class="action-item">Slider "Oscurecer fondo" 30% → 55% (mejor legibilidad)</div>
+        </div>
+        
+        <div class="narration">
+          "El overlay semi-transparente oscurece la imagen de fondo para que el título dorado resalte perfectamente. Ajuste en tiempo real con un slider."
+        </div>
+      </div>
+    </div>
+
+    <!-- ESCENA 6 -->
+    <div class="scene">
+      <div class="scene-header">
+        <div class="scene-number">6</div>
+        <div class="scene-title">
+          <h2>Ajustar Tipografía</h2>
+          <div class="time">2:00 - 2:20</div>
+        </div>
+      </div>
+      <div class="scene-content">
+        <p>Con controles en tiempo real, el usuario ajusta tamaño, espaciado y fuente hasta que la portada se siente perfecta.</p>
+        
+        <div class="actions">
+          <div class="action-item">Tamaño título: 72px → 62px (título largo, mejor fit)</div>
+          <div class="action-item">Espaciado letras: 0 → 35px (más aire y elegancia)</div>
+          <div class="action-item">Fuente: Fraunces → Playfair Display (más editorial)</div>
+          <div class="action-item">Sombra: 6px (profundidad y contraste)</div>
+        </div>
+        
+        <div class="narration">
+          "Cada cambio se refleja al instante en el canvas. No hay botón 'Aplicar' — el canvas es reactivo. Esto acelera la iteración de diseño dramáticamente."
+        </div>
+      </div>
+    </div>
+
+    <!-- ESCENA 7 -->
+    <div class="scene">
+      <div class="scene-header">
+        <div class="scene-number">7</div>
+        <div class="scene-title">
+          <h2>Exportar Portada</h2>
+          <div class="time">2:20 - 2:40</div>
+        </div>
+      </div>
+      <div class="scene-content">
+        <p>En menos de 2 minutos, pasamos de un libro sin portada a un diseño profesional listo para Amazon KDP, IngramSpark o cualquier plataforma de publicación.</p>
+        
+        <div class="actions">
+          <div class="action-item primary">Descargar PNG → 1600×2400px (300 DPI print-ready)</div>
+          <div class="action-item">O: Continuar en Canva → editor profesional avanzado</div>
+        </div>
+        
+        <div class="features-grid">
+          <div class="feature-card">
+            <h4>Opción 1: PNG Directo</h4>
+            <p>Un clic descarga tu portada en alta resolución. Lista para subir a Amazon KDP, Apple Books, IngramSpark.</p>
+          </div>
+          <div class="feature-card">
+            <h4>Opción 2: Canva</h4>
+            <p>Descarga PNG actual + copia título al clipboard + abre Canva con templates de Kindle. Todo automático.</p>
+          </div>
+        </div>
+        
+        <div class="narration">
+          "El botón 'Continuar en Canva' es un deep link inteligente. Descarga tu diseño, copia el título y autor al portapapeles, y abre Canva con templates de libros pre-filtrados. Todo tu trabajo se preserva."
+        </div>
+      </div>
+    </div>
+
+    <!-- ESCENA 8 -->
+    <div class="scene">
+      <div class="scene-header">
+        <div class="scene-number">8</div>
+        <div class="scene-title">
+          <h2>Resultado Final</h2>
+          <div class="time">2:40 - 3:00</div>
+        </div>
+      </div>
+      <div class="scene-content">
+        <div class="screenshot">
+          <img src="https://raw.githubusercontent.com/joga4live/joga-covers/main/backgrounds/selfhelp.png" alt="Portada final terminada">
+          <div class="screenshot-caption">Portada final: 1600×2400px, ~2.5MB, PNG sin compresión</div>
+        </div>
+        
+        <div class="features-grid">
+          <div class="feature-card">
+            <h4>Antes</h4>
+            <p>Libro solo como .txt · Sin identidad visual · No publicable</p>
+          </div>
+          <div class="feature-card">
+            <h4>Después</h4>
+            <p>Portada profesional · Diseño premium editorial · Listo para Amazon KDP</p>
+          </div>
+        </div>
+        
+        <div class="narration">
+          "Flujo completo en 3 minutos: (1) Terminar libro en Joga Books, (2) Clic 'Diseñar portada', (3) Ajustar template + fondo, (4) Descargar PNG. Gratis, sin límites, código abierto."
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="cta-final">
+    <h2>Pruébalo Ahora</h2>
+    <p>De tu experiencia a un libro publicado, con portada profesional incluida</p>
+    <div class="cta-buttons">
+      <a href="https://joga4live.github.io/Joga-Books/" class="btn btn-primary" target="_blank">🚀 Joga Books</a>
+      <a href="https://joga4live.github.io/joga-covers/" class="btn btn-secondary" target="_blank">🎨 Editor de Portadas</a>
+      <a href="https://github.com/joga4live/joga-covers" class="btn btn-secondary" target="_blank">📖 GitHub Repo</a>
+    </div>
+  </div>
+
+  <div class="specs">
+    <h3>📊 Especificaciones Técnicas</h3>
+    <ul>
+      <li><strong>Duración:</strong> 3:00 minutos</li>
+      <li><strong>Resolución canvas:</strong> 600×900px (editor) → 1600×2400px (export)</li>
+      <li><strong>Aspect ratio:</strong> 2:3 (perfecto para Amazon KDP, IngramSpark, Apple Books)</li>
+      <li><strong>Formato export:</strong> PNG sin pérdida, ~2-3MB</li>
+      <li><strong>DPI equivalente:</strong> 300 DPI para impresión profesional</li>
+      <li><strong>Templates disponibles:</strong> 13 (Editorial, Self-Help, Business, Mindfulness, Memoir, Corporate, Dark Academic, Poesía, Infantil, Thriller, Romance, Monolito, Minimalista)</li>
+      <li><strong>Fuentes premium:</strong> Fraunces, Playfair Display, Cormorant Garamond, Inter, Cinzel, Libre Baskerville</li>
+      <li><strong>Fondos IA:</strong> 4 portadas ejemplo generadas con ChatGPT (Business, Mindfulness, Self-Help, Memoir)</li>
+      <li><strong>Integración:</strong> Query params precargados desde Joga Books + postMessage API para iframe embed</li>
+      <li><strong>Plataformas soportadas:</strong> Amazon KDP, IngramSpark, Apple Books, Google Play Books, Wattpad, cualquier POD</li>
+    </ul>
+  </div>
+
+  <script>
+    // Smooth scroll para navegación interna
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+    
+    // Lazy loading para screenshots (cuando las agregemos)
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          if (img.dataset.src) {
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+          }
+          observer.unobserve(img);
+        }
+      });
+    }, { rootMargin: '50px' });
+    
+    document.querySelectorAll('img[data-src]').forEach(img => observer.observe(img));
+  </script>
+
+</body>
+</html>
