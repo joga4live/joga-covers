@@ -462,7 +462,11 @@ const backgrounds = {
   'solid-gold': { type: 'gradient', colors: ['#f7d478', '#b8862c'], angle: 135, label: 'Dorado' },
   'solid-cream': { type: 'gradient', colors: ['#f5e9d0', '#d4b884'], angle: 135, label: 'Crema' },
   'solid-black': { type: 'gradient', colors: ['#1a1815', '#3a3530'], angle: 135, label: 'Noir' },
-  'solid-burgundy': { type: 'gradient', colors: ['#4a1a1a', '#8b3a3a'], angle: 135, label: 'Burgundy' }
+  'solid-burgundy': { type: 'gradient', colors: ['#4a1a1a', '#8b3a3a'], angle: 135, label: 'Burgundy' },
+  'example-business': { type: 'image', url: 'backgrounds/business.png', label: 'Business' },
+  'example-mindfulness': { type: 'image', url: 'backgrounds/mindfulness.png', label: 'Mindfulness' },
+  'example-selfhelp': { type: 'image', url: 'backgrounds/selfhelp.png', label: 'Self-Help' },
+  'example-memoir': { type: 'image', url: 'backgrounds/memoir.png', label: 'Memoir' }
 };
 
 // ================================
@@ -667,11 +671,19 @@ function renderBackgrounds() {
     div.className = 'bg-thumb ' + id + (id === state.currentBg ? ' active' : '');
     if (bg.type === 'gradient') {
       div.style.background = `linear-gradient(${bg.angle}deg, ${bg.colors.join(', ')})`;
+    } else if (bg.type === 'image') {
+      div.style.backgroundImage = `url('${bg.url}')`;
+      div.style.backgroundSize = 'cover';
+      div.style.backgroundPosition = 'center';
     }
     div.innerHTML = `<div class="label">${bg.label}</div>`;
     div.onclick = () => {
       state.currentBg = id;
-      setGradientBg(bg.colors, bg.angle);
+      if (bg.type === 'gradient') {
+        setGradientBg(bg.colors, bg.angle);
+      } else if (bg.type === 'image') {
+        setImageBg(bg.url);
+      }
       document.querySelectorAll('.bg-thumb').forEach(t => t.classList.remove('active'));
       div.classList.add('active');
     };
