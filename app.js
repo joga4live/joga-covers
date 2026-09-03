@@ -1013,5 +1013,12 @@ document.fonts.ready.then(() => {
   renderBackgrounds();
   renderTemplates();
   setGradientBg(backgrounds['solid-gold'].colors, backgrounds['solid-gold'].angle);
+  
+  // Leer URL params (title, subtitle, author) si vienen de Joga Books
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('title')) document.getElementById('titleInput').value = params.get('title');
+  if (params.get('subtitle')) document.getElementById('subtitleInput').value = params.get('subtitle');
+  if (params.get('author')) document.getElementById('authorInput').value = params.get('author');
+  
   applyTemplate('editorial-gold');
 });
