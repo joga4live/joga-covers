@@ -34,7 +34,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 380,
-        fontSize: 60,
+        fontSize: 78,
         fontFamily: 'Fraunces',
         fontWeight: 700,
         fill: '#f5f0e8',
@@ -51,11 +51,11 @@ const templates = {
       });
       setAuthorStyle({
         top: 890,
-        fontSize: 16,
+        fontSize: 32,
         fontFamily: 'Inter',
         fontWeight: 600,
-        fill: '#d4a744',
-        charSpacing: 300
+        fill: '#f5f0e8',
+        charSpacing: 120
       });
       addOrnament('◆', 340, 20, '#d4a744');
     }
@@ -66,7 +66,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 100,
-        fontSize: 56,
+        fontSize: 73,
         fontFamily: 'Playfair Display',
         fontWeight: 900,
         fill: '#1a1815',
@@ -83,7 +83,7 @@ const templates = {
       });
       setAuthorStyle({
         top: 880,
-        fontSize: 16,
+        fontSize: 32,
         fontFamily: 'Inter',
         fontWeight: 400,
         fill: '#1a1815',
@@ -114,10 +114,10 @@ const templates = {
       });
       setAuthorStyle({
         top: 890,
-        fontSize: 14,
+        fontSize: 32,
         fontFamily: 'Bebas Neue',
-        fill: '#d4a744',
-        charSpacing: 300
+        fill: '#f5f0e8',
+        charSpacing: 120
       });
       removeOrnament();
     }
@@ -128,7 +128,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 380,
-        fontSize: 60,
+        fontSize: 78,
         fontFamily: 'Cinzel',
         fontWeight: 600,
         fill: '#f5e9d0',
@@ -145,11 +145,11 @@ const templates = {
       });
       setAuthorStyle({
         top: 880,
-        fontSize: 14,
+        fontSize: 32,
         fontFamily: 'Cinzel',
         fontWeight: 400,
         fill: '#f5e9d0',
-        charSpacing: 400
+        charSpacing: 120
       });
       addOrnament('❦', 320, 32, '#d4a744');
     }
@@ -174,7 +174,7 @@ const templates = {
         fontSize: 18,
         fontFamily: 'Inter',
         fontWeight: 400,
-        fill: '#d4a744',
+        fill: '#f5f0e8',
         textAlign: 'left',
         left: 60,
         originX: 'left',
@@ -182,14 +182,14 @@ const templates = {
       });
       setAuthorStyle({
         top: 890,
-        fontSize: 14,
+        fontSize: 32,
         fontFamily: 'Inter',
         fontWeight: 800,
         fill: '#f5f0e8',
         textAlign: 'left',
         left: 60,
         originX: 'left',
-        charSpacing: 300
+        charSpacing: 120
       });
       removeOrnament();
     }
@@ -203,7 +203,7 @@ const templates = {
         fontSize: 100,
         fontFamily: 'Fraunces',
         fontWeight: 900,
-        fill: '#d4a744',
+        fill: '#f5f0e8',
         textAlign: 'center',
         charSpacing: -20
       });
@@ -217,11 +217,11 @@ const templates = {
       });
       setAuthorStyle({
         top: 890,
-        fontSize: 20,
+        fontSize: 32,
         fontFamily: 'Inter',
         fontWeight: 800,
-        fill: '#d4a744',
-        charSpacing: 200
+        fill: '#f5f0e8',
+        charSpacing: 120
       });
       removeOrnament();
     }
@@ -248,10 +248,10 @@ const templates = {
       });
       setAuthorStyle({
         top: 890,
-        fontSize: 16,
+        fontSize: 32,
         fontFamily: 'Bebas Neue',
         fill: '#f5f0e8',
-        charSpacing: 350
+        charSpacing: 120
       });
       removeOrnament();
     }
@@ -262,7 +262,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 380,
-        fontSize: 66,
+        fontSize: 86,
         fontFamily: 'Cormorant Garamond',
         fontStyle: 'italic',
         fontWeight: 500,
@@ -280,11 +280,11 @@ const templates = {
       });
       setAuthorStyle({
         top: 890,
-        fontSize: 14,
+        fontSize: 32,
         fontFamily: 'Inter',
         fontWeight: 400,
         fill: '#f5e9d0',
-        charSpacing: 400
+        charSpacing: 120
       });
       addOrnament('❦', 340, 24, '#e8a5b8');
     }
@@ -295,7 +295,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 420,
-        fontSize: 48,
+        fontSize: 62,
         fontFamily: 'Cormorant Garamond',
         fontWeight: 300,
         fill: '#f5f0e8',
@@ -307,16 +307,16 @@ const templates = {
         fontSize: 14,
         fontFamily: 'Cormorant Garamond',
         fontStyle: 'italic',
-        fill: '#d4a744',
+        fill: '#f5f0e8',
         charSpacing: 200
       });
       setAuthorStyle({
         top: 890,
-        fontSize: 12,
+        fontSize: 32,
         fontFamily: 'Cormorant Garamond',
         fontStyle: 'italic',
         fill: '#a8a09a',
-        charSpacing: 500
+        charSpacing: 120
       });
       addOrnament('—', 380, 40, '#d4a744');
     }
@@ -341,7 +341,7 @@ const templates = {
         fontSize: 18,
         fontFamily: 'Inter',
         fontWeight: 400,
-        fill: '#d4a744',
+        fill: '#f5f0e8',
         textAlign: 'left',
         left: 60,
         originX: 'left',
@@ -349,14 +349,14 @@ const templates = {
       });
       setAuthorStyle({
         top: 890,
-        fontSize: 14,
+        fontSize: 32,
         fontFamily: 'Inter',
         fontWeight: 700,
         fill: '#f5f0e8',
         textAlign: 'left',
         left: 60,
         originX: 'left',
-        charSpacing: 300
+        charSpacing: 120
       });
       removeOrnament();
     }
@@ -367,7 +367,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 350,
-        fontSize: 62,
+        fontSize: 81,
         fontFamily: 'Playfair Display',
         fontWeight: 400,
         fontStyle: 'italic',
@@ -380,16 +380,16 @@ const templates = {
         fontSize: 15,
         fontFamily: 'Inter',
         fontWeight: 300,
-        fill: '#d4a744',
+        fill: '#f5f0e8',
         charSpacing: 250
       });
       setAuthorStyle({
         top: 890,
-        fontSize: 15,
+        fontSize: 32,
         fontFamily: 'Playfair Display',
         fontWeight: 400,
         fill: '#f5f0e8',
-        charSpacing: 250
+        charSpacing: 120
       });
       addOrnament('·  ·  ·', 300, 18, '#d4a744');
     }
@@ -400,10 +400,10 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 370,
-        fontSize: 56,
+        fontSize: 73,
         fontFamily: 'Cinzel',
         fontWeight: 900,
-        fill: '#d4a744',
+        fill: '#f5f0e8',
         textAlign: 'center',
         charSpacing: 80
       });
@@ -417,11 +417,11 @@ const templates = {
       });
       setAuthorStyle({
         top: 890,
-        fontSize: 12,
+        fontSize: 32,
         fontFamily: 'Cinzel',
         fontWeight: 400,
-        fill: '#d4a744',
-        charSpacing: 400
+        fill: '#f5f0e8',
+        charSpacing: 120
       });
       addOrnament('⚜', 320, 24, '#d4a744');
     }
@@ -449,7 +449,7 @@ const templates = {
       });
       setAuthorStyle({
         top: 890,
-        fontSize: 18,
+        fontSize: 32,
         fontFamily: 'Inter',
         fontWeight: 800,
         fill: '#f5f0e8',
