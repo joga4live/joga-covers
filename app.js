@@ -1044,3 +1044,46 @@ document.fonts.ready.then(() => {
   
   applyTemplate('editorial-gold');
 });
+
+// v3: el lienzo se ajusta al espacio que hay, manteniendo la proporcion.
+// Antes se pintaba a tamano real (600x960) dentro de un area de 640x760 con
+// overflow:hidden, asi que se cortaban 200 px por abajo. Con el lienzo anterior
+// de 900 ya se cortaban 140: el fallo venia de antes, subir a 960 solo lo hizo
+// mas visible. Se usa setDimensions con cssOnly para que Fabric siga sabiendo
+// donde caen los clics; escalar con CSS a secas descoloca el raton.
+// / v3: the canvas now fits the available space, keeping its ratio. It used to
+// render at full size (600x960) inside a 640x760 area with overflow:hidden, so
+// 200 px were cut off. At the old 900 height 140 px were already being cut: the
+// bug predates the resize. setDimensions with cssOnly keeps Fabric aware of
+// where clicks land; plain CSS scaling misaligns the mouse.
+function ajustarLienzo() {
+  const area = document.querySelector(".canvas-area");
+  if (!area || !canvas) return;
+  const caja = area.getBoundingClientRect();
+  const margen = 40;
+  const escala = Math.min(
+    (caja.width  - margen) / canvas.getWidth(),
+    (caja.height - margen) / canvas.getHeight(),
+    1
+  );
+  if (!isFinite(escala) || escala <= 0) return;
+  // Con cssOnly, Fabric 5.3 EXIGE las medidas con unidades. Sin el "px" no hace
+  // nada y no avisa: medido, el estilo se quedaba en 600x960.
+  // / With cssOnly, Fabric 5.3 REQUIRES units. Without "px" it silently does
+  // nothing: measured, the style stayed at 600x960.
+  canvas.setDimensions(
+    { width: Math.round(canvas.getWidth() * escala) + "px",
+      height: Math.round(canvas.getHeight() * escala) + "px" },
+    { cssOnly: true }
+  );
+  // setDimensions deja el lienzo EN BLANCO: los objetos siguen ahi pero no se
+  // pintan. Medido: el pixel del centro pasaba a transparente. Sin este
+  // renderAll la portada se ve como un recuadro negro.
+  // / setDimensions leaves the canvas BLANK: the objects are still there but are
+  // not painted. Measured: the centre pixel went transparent. Without this
+  // renderAll the cover shows as a black rectangle.
+  canvas.renderAll();
+}
+window.addEventListener("resize", ajustarLienzo);
+window.addEventListener("load", ajustarLienzo);
+setTimeout(ajustarLienzo, 300);
