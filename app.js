@@ -1,11 +1,16 @@
 // Joga Covers — editor de portadas
-// Canvas 600×900 (proporción 2:3 estándar libro) — exporta a 1600×2400 (300 DPI)
+// Canvas 600×960 — exporta a 1600×2560, que es la medida que pide Amazon KDP para
+// portada de ebook (proporcion 1.6). Antes era 600×900 -> 1600×2400 (proporcion 1.5):
+// Kindle lo reajustaba y recortaba o dejaba bandas. El multiplicador 2.667 NO cambia:
+// 600*2.667=1600 y 960*2.667=2560. / Canvas 600×960, exports to 1600×2560, the size
+// Amazon KDP asks for an ebook cover (1.6 ratio). It was 600×900 -> 1600×2400 (1.5):
+// Kindle re-fitted it, cropping or letterboxing. The 2.667 multiplier is unchanged.
 
 const canvas = new fabric.Canvas('canvas', {
   backgroundColor: '#1a1815',
   preserveObjectStacking: true,
   width: 600,
-  height: 900
+  height: 960
 });
 
 const state = {
@@ -45,7 +50,7 @@ const templates = {
         charSpacing: 80
       });
       setAuthorStyle({
-        top: 830,
+        top: 890,
         fontSize: 16,
         fontFamily: 'Inter',
         fontWeight: 600,
@@ -77,7 +82,7 @@ const templates = {
         charSpacing: 200
       });
       setAuthorStyle({
-        top: 820,
+        top: 880,
         fontSize: 16,
         fontFamily: 'Inter',
         fontWeight: 400,
@@ -108,7 +113,7 @@ const templates = {
         charSpacing: 500
       });
       setAuthorStyle({
-        top: 830,
+        top: 890,
         fontSize: 14,
         fontFamily: 'Bebas Neue',
         fill: '#d4a744',
@@ -139,7 +144,7 @@ const templates = {
         charSpacing: 100
       });
       setAuthorStyle({
-        top: 820,
+        top: 880,
         fontSize: 14,
         fontFamily: 'Cinzel',
         fontWeight: 400,
@@ -176,7 +181,7 @@ const templates = {
         charSpacing: 80
       });
       setAuthorStyle({
-        top: 830,
+        top: 890,
         fontSize: 14,
         fontFamily: 'Inter',
         fontWeight: 800,
@@ -211,7 +216,7 @@ const templates = {
         charSpacing: 40
       });
       setAuthorStyle({
-        top: 830,
+        top: 890,
         fontSize: 20,
         fontFamily: 'Inter',
         fontWeight: 800,
@@ -242,7 +247,7 @@ const templates = {
         charSpacing: 400
       });
       setAuthorStyle({
-        top: 830,
+        top: 890,
         fontSize: 16,
         fontFamily: 'Bebas Neue',
         fill: '#f5f0e8',
@@ -274,7 +279,7 @@ const templates = {
         charSpacing: 100
       });
       setAuthorStyle({
-        top: 830,
+        top: 890,
         fontSize: 14,
         fontFamily: 'Inter',
         fontWeight: 400,
@@ -306,7 +311,7 @@ const templates = {
         charSpacing: 200
       });
       setAuthorStyle({
-        top: 830,
+        top: 890,
         fontSize: 12,
         fontFamily: 'Cormorant Garamond',
         fontStyle: 'italic',
@@ -343,7 +348,7 @@ const templates = {
         charSpacing: 20
       });
       setAuthorStyle({
-        top: 830,
+        top: 890,
         fontSize: 14,
         fontFamily: 'Inter',
         fontWeight: 700,
@@ -379,7 +384,7 @@ const templates = {
         charSpacing: 250
       });
       setAuthorStyle({
-        top: 830,
+        top: 890,
         fontSize: 15,
         fontFamily: 'Playfair Display',
         fontWeight: 400,
@@ -411,7 +416,7 @@ const templates = {
         charSpacing: 150
       });
       setAuthorStyle({
-        top: 830,
+        top: 890,
         fontSize: 12,
         fontFamily: 'Cinzel',
         fontWeight: 400,
@@ -443,7 +448,7 @@ const templates = {
         charSpacing: 30
       });
       setAuthorStyle({
-        top: 830,
+        top: 890,
         fontSize: 18,
         fontFamily: 'Inter',
         fontWeight: 800,
@@ -593,7 +598,7 @@ function setGradientBg(colors, angle) {
 
   if (state.bgObject) canvas.remove(state.bgObject);
   state.bgObject = new fabric.Rect({
-    left: 0, top: 0, width: 600, height: 900,
+    left: 0, top: 0, width: 600, height: 960,
     selectable: false, evented: false,
     fill: new fabric.Gradient({
       type: 'linear',
@@ -611,7 +616,7 @@ function setGradientBg(colors, angle) {
 
 function setImageBg(url) {
   fabric.Image.fromURL(url, (img) => {
-    const scale = Math.max(600 / img.width, 900 / img.height);
+    const scale = Math.max(600 / img.width, 960 / img.height);
     img.set({
       left: 300,
       top: 450,
@@ -635,7 +640,7 @@ function applyOverlay() {
   const opacity = parseInt(document.getElementById('overlayOpacity').value) / 100;
   if (opacity > 0) {
     state.overlayObject = new fabric.Rect({
-      left: 0, top: 0, width: 600, height: 900,
+      left: 0, top: 0, width: 600, height: 960,
       fill: `rgba(0,0,0,${opacity})`,
       selectable: false, evented: false
     });
@@ -787,13 +792,13 @@ document.querySelector('.canvas-area').addEventListener('drop', (e) => {
   reader.readAsDataURL(file);
 });
 
-// Export a alta resolución (1600×2400 = 300 DPI para print)
+// Export a alta resolución: 1600×2560, la medida de Amazon para ebook / high-res export: 1600×2560, Amazon ebook size
 document.getElementById('exportBtn').addEventListener('click', () => {
   const title = document.getElementById('titleInput').value.replace(/[^a-z0-9]/gi, '-').toLowerCase();
   const dataURL = canvas.toDataURL({
     format: 'png',
     quality: 1,
-    multiplier: 2.667  // 600 * 2.667 ≈ 1600
+    multiplier: 2.667  // 600*2.667=1600 y 960*2.667=2560 / 600*2.667=1600 and 960*2.667=2560
   });
   const link = document.createElement('a');
   link.download = `portada-${title}-${Date.now()}.png`;
@@ -1013,7 +1018,7 @@ if (isEmbedded) {
     if (exportBtn) {
       const saveBtn = document.createElement('button');
       saveBtn.className = 'btn primary';
-      saveBtn.textContent = '💾 Guardar en Joga Book';
+      saveBtn.textContent = 'Guardar en Joga Book'; // v2: sin emoji, para que combine con Joga Books / no emoji, to match Joga Books
       saveBtn.style.cssText = 'background: linear-gradient(135deg, #d4a744, #b8862c); margin-right: 8px;';
       saveBtn.onclick = () => {
         window.postMessage({ type: 'JOGA_COVERS_REQUEST_EXPORT' }, '*');
