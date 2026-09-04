@@ -34,6 +34,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 380,
+        maxAlto: 144,
         fontSize: 78,
         fontFamily: 'Fraunces',
         fontWeight: 700,
@@ -66,6 +67,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 100,
+        maxAlto: 84,
         fontSize: 73,
         fontFamily: 'Playfair Display',
         fontWeight: 900,
@@ -98,6 +100,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 380,
+        maxAlto: 94,
         fontSize: 92,
         fontFamily: 'Bebas Neue',
         fill: '#f5f0e8',
@@ -128,6 +131,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 380,
+        maxAlto: 84,
         fontSize: 78,
         fontFamily: 'Cinzel',
         fontWeight: 600,
@@ -160,6 +164,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 350,
+        maxAlto: 134,
         fontSize: 84,
         fontFamily: 'Fraunces',
         fontWeight: 900,
@@ -200,6 +205,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 300,
+        maxAlto: 144,
         fontSize: 100,
         fontFamily: 'Fraunces',
         fontWeight: 900,
@@ -232,6 +238,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 340,
+        maxAlto: 144,
         fontSize: 110,
         fontFamily: 'Bebas Neue',
         fill: '#e56b5b',
@@ -262,6 +269,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 380,
+        maxAlto: 104,
         fontSize: 86,
         fontFamily: 'Cormorant Garamond',
         fontStyle: 'italic',
@@ -295,6 +303,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 420,
+        maxAlto: 84,
         fontSize: 62,
         fontFamily: 'Cormorant Garamond',
         fontWeight: 300,
@@ -327,6 +336,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 100,
+        maxAlto: 144,
         fontSize: 72,
         fontFamily: 'Inter',
         fontWeight: 800,
@@ -367,6 +377,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 350,
+        maxAlto: 124,
         fontSize: 81,
         fontFamily: 'Playfair Display',
         fontWeight: 400,
@@ -400,6 +411,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 370,
+        maxAlto: 114,
         fontSize: 73,
         fontFamily: 'Cinzel',
         fontWeight: 900,
@@ -432,6 +444,7 @@ const templates = {
     apply: () => {
       setTitleStyle({
         top: 340,
+        maxAlto: 144,
         fontSize: 88,
         fontFamily: 'Fraunces',
         fontWeight: 900,
@@ -481,15 +494,41 @@ function setTitleStyle(opts) {
   const text = document.getElementById('titleInput').value;
   if (state.titleObject) canvas.remove(state.titleObject);
   const maxWidth = opts.originX === 'left' ? 480 : 520;
-  // Auto-fit: reducir fontSize si el título no cabe
+  // v4: el titulo puede ocupar DOS lineas antes de encogerse.
+  // Antes se medía con fabric.Text, que es de una sola linea, asi que el
+  // auto-fit bajaba el tamano hasta que cupiera de lado a lado: "El Despertar
+  // Interior" caia de 78 a 56. Ahora se mide con un Textbox del ancho real, que
+  // parte solo, y solo se encoge si pasa de MAX_LINEAS. Es lo que hacen las
+  // portadas que venden: titulo grande partido en dos.
+  // NO se sube el tamano por encima del de la plantilla, a proposito: crecer
+  // sin tope invadiria el subtitulo, que en algunas plantillas esta a 160 px.
+  // / v4: the title may use TWO lines before shrinking. It used to be measured
+  // with fabric.Text (single line), so auto-fit shrank it until it fit across:
+  // "El Despertar Interior" dropped from 78 to 56. Now it is measured with a
+  // Textbox of the real width, which wraps on its own, and only shrinks past
+  // MAX_LINEAS. The size is never raised above the template value on purpose:
+  // growing unbounded would invade the subtitle, only 160 px below in some.
+  const MAX_LINEAS = 2;
   let fontSize = opts.fontSize;
-  const testText = new fabric.Text(text, {
-    fontSize, fontFamily: opts.fontFamily, fontWeight: opts.fontWeight || 400,
-    charSpacing: opts.charSpacing || 0
-  });
-  while (testText.width > maxWidth && fontSize > 24) {
+  // El tope de alto lo trae cada plantilla (maxAlto), calculado como la
+  // distancia hasta su subtitulo menos 16 px de aire. Sin el, dos lineas a 78 pt
+  // invadian el subtitulo 22 px: medido, no supuesto.
+  // / The height cap comes from each template (maxAlto): the distance to its own
+  // subtitle minus 16 px of air. Without it, two lines at 78 pt overlapped the
+  // subtitle by 22 px. Measured, not assumed.
+  const maxAlto = opts.maxAlto || 999;
+  const pruebaCon = (fs) => {
+    const t = new fabric.Textbox(text, {
+      width: maxWidth, fontSize: fs, fontFamily: opts.fontFamily,
+      fontWeight: opts.fontWeight || 400, charSpacing: opts.charSpacing || 0,
+      lineHeight: 1.05
+    });
+    return { lineas: t.textLines.length, alto: t.height };
+  };
+  while (fontSize > 24) {
+    const p = pruebaCon(fontSize);
+    if (p.lineas <= MAX_LINEAS && p.alto <= maxAlto) break;
     fontSize -= 2;
-    testText.set('fontSize', fontSize);
   }
   state.titleObject = new fabric.Textbox(text, {
     width: maxWidth,
