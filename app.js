@@ -722,10 +722,13 @@ function applyShadow(obj) {
 // ================================
 function setGradientBg(colors, angle) {
   const rad = (angle * Math.PI) / 180;
+  // Centro vertical 480 = mitad de 960 (alto real del lienzo). Antes era 450,
+  // mitad del lienzo viejo de 900. / Vertical center 480 = half of 960 (the
+  // canvas's real height). It used to be 450, half of the old 900 canvas.
   const x1 = 300 - Math.cos(rad) * 300;
-  const y1 = 450 - Math.sin(rad) * 450;
+  const y1 = 480 - Math.sin(rad) * 480;
   const x2 = 300 + Math.cos(rad) * 300;
-  const y2 = 450 + Math.sin(rad) * 450;
+  const y2 = 480 + Math.sin(rad) * 480;
 
   if (state.bgObject) canvas.remove(state.bgObject);
   state.bgObject = new fabric.Rect({
@@ -750,7 +753,12 @@ function setImageBg(url) {
     const scale = Math.max(600 / img.width, 960 / img.height);
     img.set({
       left: 300,
-      top: 450,
+      // 480 = mitad de 960 (alto real del lienzo). Antes era 450, mitad del
+      // lienzo viejo de 900: dejaba una franja negra de 30px abajo (80px en
+      // el PNG final de KDP). / 480 = half of 960 (the canvas's real height).
+      // It used to be 450, half of the old 900 canvas: left a 30px black
+      // band at the bottom (80px in the final KDP PNG).
+      top: 480,
       originX: 'center',
       originY: 'center',
       scaleX: scale,

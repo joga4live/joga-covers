@@ -430,3 +430,73 @@ hallar bloques `es:`/`en:` en `app.js` ni `index.html`.
 - Todo lo verificable por comando quedó verificado arriba; lo que sólo se puede confirmar
   interactuando con Fabric.js y el DOM real queda marcado PENDIENTE DE MEDICIÓN para Nico, con
   el paso a paso y el resultado esperado de cada uno.
+
+---
+
+## Ronda 4 — fondo de imagen centrado (6-sep-2026, Tavo)
+
+Tarea de Kimo MD (prompt directo, no hay `plan-` nuevo para esta vuelta): con la portada real de
+José (PNG 1410×2250) subida por el botón "+", la exportación salía con una franja negra de 30px
+abajo (80px en el PNG final de 1600×2560 para Amazon KDP). Medido por Kimo MD en navegador:
+`state.bgObject.top = 450`, `originY: 'center'`, bounding box de −30 a 930 sobre un lienzo de 960.
+
+**Causa**: el lienzo pasó de 600×900 a 600×960 en el commit `29e816b` (cabecera de `app.js`,
+líneas 1-7), pero dos sitios seguían centrando contra el alto viejo (900/2 = 450) en vez del
+nuevo (960/2 = 480).
+
+### Cambios en `app.js`
+
+1. **`setImageBg` (línea ~756, antes 748-767)**: `top: 450` → `top: 480`. Esta es la función que
+   pinta el fondo de imagen; la llaman tanto el listener de `#uploadBg` (línea 1126/1131) como el
+   `drop` sobre `.canvas-area` (línea 1139/1145) — confirmado por grep, ambos pasan por
+   `setImageBg(url)`, así que un solo cambio cubre las tres vías (botón "+", input file y
+   arrastrar-y-soltar).
+2. **`setGradientBg` (línea ~723-731)**: los `y1`/`y2` del degradado usaban centro y radio 450;
+   pasaron a 480 (`y1 = 480 - sin*480`, `y2 = 480 + sin*480`). El ancho (`x1`/`x2` con 300/300)
+   no se tocó, como pedía la tarea. Este no causaba la franja negra (el degradado sí cubre 0-960
+   completo aunque el centro esté descuadrado), pero dejaba el punto medio del gradiente en 450
+   en vez de 480 — geometría inconsistente con el resto del lienzo, corregida por coherencia.
+3. Comentario bilingüe corto en ambos puntos explicando que el 450 venía del lienzo viejo de 900.
+
+### Grep de restos `450`/`900` en todo `app.js` (tarea 3 del prompt)
+
+Busqué `450` y `900` en todo el archivo antes y después del cambio. Fuera de los dos puntos ya
+corregidos, lo único que aparece es:
+- `fontWeight: 900` (5 apariciones, líneas 103/200/241/447/480) — es peso tipográfico CSS, no
+  tiene relación con el alto del lienzo. No se tocó.
+- Comentarios en las líneas 1-7 y 1461-1471 que **narran correctamente** el cambio de 900→960 (el
+  primero documenta el commit `29e816b`, el segundo un ajuste de escala del área visible) — son
+  historia, no código con el bug. No se tocó.
+
+No encontré ningún otro resto de geometría del lienzo viejo.
+
+### Verificado por comando
+
+- `node --check app.js` → limpio (exit 0).
+- `grep -n "450\|480" app.js` tras el cambio: los únicos `450` que quedan están dentro de los
+  comentarios nuevos explicando el porqué; los `480` de geometría del lienzo son exactamente los
+  dos que se tocaron (más otros `480` preexistentes de ancho/alto de texto, sin relación, no
+  tocados).
+- `git status`: sólo `app.js` modificado (+ este archivo de handoff). Sin commit, sin push.
+- `git diff app.js`: 11 inserciones / 3 eliminaciones, exactamente los dos bloques de arriba —
+  sin cambios colaterales.
+
+### PENDIENTE DE MEDICIÓN (para Nico — mi rol no abre navegador)
+
+**Paso a paso:**
+1. Abrir `index.html` en navegador con `app.js` de esta ronda cargado.
+2. Subir una imagen de proporción ≈1.6 (por ejemplo 1410×2250, la portada real de José, o
+   cualquier PNG/JPG con esa relación de aspecto) por el input `#uploadBg` (el botón "+").
+3. En la consola: `state.bgObject.getBoundingRect(true, true)`.
+
+**Esperado**: `top` ≈ 0 y `top + height` ≈ 960 (bounding box de 0 a 960, sin franja negra arriba
+ni abajo). Antes del fix daba −30 a 930.
+
+4. Repetir el mismo paso soltando la imagen por drag & drop sobre el área del lienzo — mismo
+   resultado esperado, ya que pasa por la misma función `setImageBg`.
+5. Exportar el PNG final y confirmar visualmente que no hay franja negra en el borde inferior
+   (equivalente a 80px en el archivo de 1600×2560 antes del fix).
+6. Revisar el degradado por defecto (`solid-gold`, el que carga `init()` al abrir la app) y
+   cualquier otro degradado del selector de fondos: confirmar que se ven igual de bien que antes
+   del cambio de centro/radio de 450 a 480 — la diferencia es de 30px sobre 960 (~3%), mi
+   expectativa es que sea imperceptible, pero no lo medí.
