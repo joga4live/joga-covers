@@ -927,19 +927,25 @@ document.getElementById('promptPreset').addEventListener('change', (e) => {
 });
 
 document.getElementById('iaGenerate').addEventListener('click', () => {
-  const prompt = document.getElementById('iaPrompt').value.trim();
-  if (!prompt) {
+  // v: renombrado de "prompt" a "promptText" — el nombre "prompt" tapaba la
+  // funcion global window.prompt() de mas abajo, y el boton tronaba en
+  // silencio si el portapapeles fallaba (Safari sin permiso, http sin TLS).
+  // / v: renamed "prompt" to "promptText" — the name "prompt" shadowed the
+  // global window.prompt() below, silently crashing the button whenever the
+  // clipboard write failed (Safari without permission, http without TLS).
+  const promptText = document.getElementById('iaPrompt').value.trim();
+  if (!promptText) {
     showToast('⚠️ Escribe o elige un prompt primero');
     return;
   }
-  navigator.clipboard.writeText(prompt).then(() => {
+  navigator.clipboard.writeText(promptText).then(() => {
     showToast('✓ Prompt copiado — pégalo en Higgsfield con Cmd+V');
     setTimeout(() => {
       window.open('https://higgsfield.ai/es/ai/image?model=gpt_image_2', '_blank', 'noopener,noreferrer');
     }, 600);
   }).catch(() => {
     // Fallback: mostrar el prompt
-    prompt('Copia manualmente:', prompt);
+    window.prompt('Copia manualmente:', promptText);
     window.open('https://higgsfield.ai/es/ai/image?model=gpt_image_2', '_blank');
   });
 });
