@@ -21,7 +21,19 @@ const state = {
   authorObject: null,
   ornamentObject: null,
   currentTemplate: 'editorial-gold',
-  currentBg: 'solid-gold'
+  currentBg: 'solid-gold',
+  // v: overrides de posicion/tamano cuando el usuario arrastra o redimensiona
+  // el titulo/subtitulo/autor a mano en el lienzo. Sin esto, escribir una letra
+  // mas o tocar cualquier control volvia a crear el objeto desde cero con la
+  // posicion fija de la plantilla y el arrastre se perdia sin aviso.
+  // / v: position/size overrides for when the user drags or resizes the
+  // title/subtitle/author by hand on the canvas. Without this, typing one more
+  // letter or touching any control recreated the object from scratch at the
+  // template's fixed position, silently discarding the drag.
+  titleOverride: null,
+  subtitleOverride: null,
+  authorOverride: null,
+  lastAppliedTemplate: null
 };
 
 // ================================
@@ -546,6 +558,7 @@ function setTitleStyle(opts) {
     shadow: null,
     editable: true
   });
+  if (state.titleOverride) state.titleObject.set(state.titleOverride);
   applyShadow(state.titleObject);
   canvas.add(state.titleObject);
 }
@@ -569,6 +582,7 @@ function setSubtitleStyle(opts) {
     lineHeight: 1.3,
     editable: true
   });
+  if (state.subtitleOverride) state.subtitleObject.set(state.subtitleOverride);
   canvas.add(state.subtitleObject);
 }
 
@@ -589,6 +603,7 @@ function setAuthorStyle(opts) {
     charSpacing: opts.charSpacing || 0,
     editable: true
   });
+  if (state.authorOverride) state.authorObject.set(state.authorOverride);
   canvas.add(state.authorObject);
 }
 
@@ -695,14 +710,39 @@ function applyOverlay() {
 // APLICAR TEMPLATE
 // ================================
 function applyTemplate(id) {
+  // Cambiar de verdad de plantilla si vuelve a poner todo en su sitio; volver
+  // a aplicar la MISMA plantilla (lo que pasa en cada letra que se escribe)
+  // debe respetar donde el usuario haya arrastrado el titulo/subtitulo/autor.
+  // / A genuine template switch resets everything to its layout; re-applying
+  // the SAME template (which happens on every keystroke) must keep wherever
+  // the user dragged the title/subtitle/author to.
+  if (id !== state.lastAppliedTemplate) {
+    state.titleOverride = null;
+    state.subtitleOverride = null;
+    state.authorOverride = null;
+  }
   state.currentTemplate = id;
   templates[id].apply();
   applyOverlay();
   canvas.renderAll();
+  state.lastAppliedTemplate = id;
   document.querySelectorAll('.template-card').forEach(c => {
     c.classList.toggle('active', c.dataset.id === id);
   });
 }
+
+// v: guarda la posicion/tamano a mano en cuanto el usuario suelta el arrastre
+// o el redimensionado, para que la proxima letra escrita no lo borre.
+// / v: saves the hand-placed position/size as soon as the user releases a
+// drag or resize, so the next keystroke does not erase it.
+canvas.on('object:modified', (e) => {
+  const obj = e.target;
+  if (!obj) return;
+  const snapshot = { left: obj.left, top: obj.top, scaleX: obj.scaleX, scaleY: obj.scaleY, angle: obj.angle };
+  if (obj === state.titleObject) state.titleOverride = snapshot;
+  else if (obj === state.subtitleObject) state.subtitleOverride = snapshot;
+  else if (obj === state.authorObject) state.authorOverride = snapshot;
+});
 
 // ================================
 // UI INIT
@@ -849,6 +889,9 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   document.getElementById('titleInput').value = 'El Despertar Interior';
   document.getElementById('subtitleInput').value = 'Un viaje hacia la claridad mental';
   document.getElementById('authorInput').value = 'Joga';
+  state.titleOverride = null;
+  state.subtitleOverride = null;
+  state.authorOverride = null;
   setGradientBg(backgrounds['solid-gold'].colors, backgrounds['solid-gold'].angle);
   applyTemplate('editorial-gold');
 });
