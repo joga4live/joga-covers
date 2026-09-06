@@ -300,3 +300,133 @@ No debería haber cambiado, pero como se tocaron `setTitleStyle`/`setSubtitleSty
 export PNG a 1600×2560 sin las asas de selección coladas, drag & drop de imagen, el botón «+»,
 los 3 botones + clic-fuera del modal de Canva, y que las 13 plantillas siguen aplicando sin
 error en consola.
+
+---
+
+## Ronda 3 — N1 y N2 (Tavo, sobre `96689ea`)
+
+Origen: `revision-joga-covers-6sep-v2.md` (Nico, veredicto CAMBIOS por dos hallazgos MENORES,
+ambos medidos por Nico en navegador; las 3 críticas y 5 importantes de esta ronda ya estaban
+PASA). Base: `origin/main` en `96689ea`. Se tocó **solo** `app.js`; no se tocó `index.html` ni
+ningún otro archivo de código.
+
+Nota sobre el "Incidente de proceso" que describe la v2 de la revisión (el commit `96689ea` se
+hizo y se subió a `origin/main` antes del veredicto): no me corresponde actuar sobre eso — mi
+rol no comitea ni hace push, y la regla de que el líder comitea tras el APROBADO sigue igual.
+Sólo lo señalo para que quede en el registro de esta ronda.
+
+### N1 — `sincronizarPanelConEstilo()` ahora sincroniza control por control
+
+**Archivo/líneas**: `app.js:828-863` (antes `828-847`; la función creció por los 4 `if` en vez
+de 1, más el bloque de comentario bilingüe que explica el porqué).
+
+**Qué cambié**: la función leía `state.titleStyle` como una sola bandera para el bloque entero
+del título — si el usuario fijaba a mano un solo control (por ejemplo «Espaciado letras»,
+`state.titleStyle = {charSpacing: 60}`), los otros tres controles (tamaño, color, fuente)
+dejaban de sincronizarse también, aunque el auto-ajuste sí pudiera seguir cambiando el tamaño
+real. Ahora cada uno de los 4 controles se decide por separado, mirando si SU clave está
+presente en `state.titleStyle`:
+
+```js
+const ts = state.titleStyle;
+if (state.titleObject) {
+  if (!ts || ts.fontSize === undefined)     { /* sincroniza tamaño */ }
+  if (!ts || ts.charSpacing === undefined)  { /* sincroniza espaciado */ }
+  if (!ts || ts.fill === undefined)         { /* sincroniza color */ }
+  if (!ts || ts.fontFamily === undefined)   { /* sincroniza fuente */ }
+}
+```
+
+No toqué el bloque de `state.authorObject`/`state.authorStyle` (líneas ~857-859): ese bloque
+sólo tiene un control (`authorColor`), así que la bandera de bloque y la de control coinciden
+— no hay bug ahí y N1 no lo menciona.
+
+**Verificado por comando**: `node --check app.js` limpio. Además, extraje la condición de los 4
+`if` a un script Node aislado (sin DOM, pura lógica) y la corrí con los 3 casos que importan:
+
+| `state.titleStyle` | tamaño sincroniza | espaciado sincroniza | color sincroniza | fuente sincroniza |
+|---|---|---|---|---|
+| `null` (nada fijado) | sí | sí | sí | sí |
+| `{charSpacing: 60}` (caso de Nico) | **sí** | **no** | sí | sí |
+| `{fontSize: 120, fill: "#ff0000"}` | no | sí | no | sí |
+
+La fila 2 es exactamente el caso de aceptación del plan: con sólo el espaciado fijado a mano,
+tamaño/color/fuente vuelven a leer el objeto real (que es donde vive el 26 del auto-fit) y el
+espaciado se queda en lo elegido. No pude ejecutar Fabric.js ni el DOM real desde este rol.
+
+**PENDIENTE DE MEDICIÓN (Nico)** — pasos exactos del "Acepta" del plan:
+1. Cargar la app, mover **sólo** el slider «Espaciado letras» a un valor distinto del inicial
+   (p. ej. 60).
+2. Escribir en el campo «Título» un texto largo de 3 líneas que fuerce al auto-ajuste a bajar el
+   tamaño real (el caso de Nico usó una frase que lo bajó de 62 a 26).
+3. Leer la etiqueta y el slider de «Tamaño título» y comparar contra `state.titleObject.fontSize`
+   real (por consola: `state.titleObject.fontSize`).
+4. **Esperado**: etiqueta y slider de «Tamaño título» muestran el tamaño real (≈26, el que haya
+   quedado tras el auto-fit), y el slider/etiqueta de «Espaciado letras» se mantienen en el 60
+   elegido — no un valor leído del objeto.
+5. Repetir para color y fuente por separado (fijar sólo uno de los cuatro controles a la vez,
+   forzar el auto-fit, comprobar que los otros tres siguen reflejando lo real) para cerrar la
+   cobertura completa de N1, no sólo el caso de espaciado que reportó Nico.
+
+### N2 — Reset ahora devuelve «Sombra texto» y «Oscurecer fondo» a sus valores por defecto
+
+**Archivo/líneas**: `app.js:1185-1188` (las 4 líneas nuevas dentro del handler de `resetBtn`,
+que ahora ocupa `1165-1200`; antes de este cambio ocupaba `1149-1172` en la numeración previa a
+esta ronda).
+
+**Qué cambié**: el handler de Reset limpiaba `state.titleStyle`/`state.authorStyle` y volvía a
+aplicar la plantilla, pero nunca tocaba los sliders `titleShadow` (sombra del título) ni
+`overlayOpacity` (oscurecer fondo) — ninguno de los dos vive en un `state.*Style`, así que nada
+los "tocaba" al hacer Reset. Añadí, antes de `applyTemplate('editorial-gold')`:
+
+```js
+document.getElementById('titleShadow').value = 6;
+document.getElementById('shadowValue').textContent = '6';
+document.getElementById('overlayOpacity').value = 52;
+document.getElementById('overlayValue').textContent = '52%';
+```
+
+Los valores 6 y 52 son los `value` por defecto de esos dos `<input type="range">` en
+`index.html:573` y `index.html:580` (verificado con `grep`, ver abajo). El orden importa: van
+**antes** de `applyTemplate`, porque `applyShadow()` (línea ~702) y `applyOverlay()` (línea
+~769) leen el slider en vivo con `document.getElementById(...).value`, no un valor en `state` —
+si se ponen después, la plantilla ya se habría aplicado con los valores viejos.
+
+**Verificado por comando**:
+- `node --check app.js` limpio.
+- `grep -n "id=\"titleShadow\"\|id=\"overlayOpacity\"" index.html` confirma `value="6"` y
+  `value="52"` como default.
+- `grep -n "id=\"shadowValue\"\|id=\"overlayValue\"" index.html` confirma que los ids de las
+  etiquetas que actualizo (`shadowValue`, `overlayValue`) existen y son los mismos que usa el
+  listener normal de cada slider (`app.js:1091-1096` para `titleShadow`, `app.js:1087-1090`
+  para `overlayOpacity`), así que no rompo la paridad de nombres.
+- Leí `applyTemplate()` (línea ~806-807) y confirmé que llama a `templates[id].apply()` (que
+  termina en `setTitleStyle`, que llama a `applyShadow(state.titleObject)` en línea ~590) y
+  luego a `applyOverlay()` directamente — ambos ya corren dentro de la llamada a
+  `applyTemplate('editorial-gold')` que el propio handler de Reset hace al final, así que no
+  hizo falta añadir una llamada nueva a esas dos funciones.
+
+**PENDIENTE DE MEDICIÓN (Nico)** — pasos exactos del "Acepta" del plan:
+1. Cargar la app, mover «Sombra texto» a 0 y «Oscurecer fondo» a 90.
+2. Pulsar «Reset».
+3. **Esperado**: el slider y la etiqueta de «Sombra texto» muestran 6, el slider y la etiqueta
+   de «Oscurecer fondo» muestran 52%, `state.titleObject.shadow` no es `null` (tiene
+   `blur`/`offsetY` acordes a `shadowVal=6`), y el lienzo se ve con sombra en el título y con el
+   overlay oscuro por defecto (no al 90%, no en 0%).
+
+### Reglas de oro — sin impacto
+
+Este repo (`joga-covers`) no tiene `gate.js`, service worker ni diccionarios `es:{}`/`en:{}` —
+es una herramienta aparte del PWA principal de Joga Intelligence. Ninguna de las 4 reglas de oro
+aplica a este cambio; confirmado con `grep -i "gate\|service" .` sin resultados relevantes y sin
+hallar bloques `es:`/`en:` en `app.js` ni `index.html`.
+
+### Estado final
+
+- `node --check app.js`: limpio.
+- `git status`: sólo `app.js` modificado por mí (y `.joga/handoff/revision-joga-covers-6sep-v2.md`,
+  que ya estaba modificado por Nico antes de que yo empezara — no lo toqué).
+- No hice commit ni push, como pide el plan.
+- Todo lo verificable por comando quedó verificado arriba; lo que sólo se puede confirmar
+  interactuando con Fabric.js y el DOM real queda marcado PENDIENTE DE MEDICIÓN para Nico, con
+  el paso a paso y el resultado esperado de cada uno.

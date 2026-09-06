@@ -826,20 +826,36 @@ function applyTemplate(id) {
 // hand (state.titleStyle/authorStyle): if they did, the panel already shows
 // their pick and must not be overwritten.
 function sincronizarPanelConEstilo() {
-  if (state.titleObject && !state.titleStyle) {
-    const sizeInput = document.getElementById('titleSize');
-    sizeInput.value = Math.round(state.titleObject.fontSize);
-    document.getElementById('titleSizeValue').textContent = sizeInput.value;
-
-    const spacingInput = document.getElementById('titleSpacing');
-    spacingInput.value = state.titleObject.charSpacing || 0;
-    document.getElementById('titleSpacingValue').textContent = spacingInput.value;
-
-    document.getElementById('titleColor').value = state.titleObject.fill;
-
-    const fontSelect = document.getElementById('titleFont');
-    const tieneOpcion = Array.from(fontSelect.options).some(o => o.value === state.titleObject.fontFamily);
-    if (tieneOpcion) fontSelect.value = state.titleObject.fontFamily;
+  // N1: la bandera ya no protege el bloque ENTERO del titulo — protege
+  // control por control. Antes, fijar solo "Espaciado letras" ponia
+  // state.titleStyle = {charSpacing:60} y eso bloqueaba tambien tamano,
+  // color y fuente, que el auto-ajuste SI puede cambiar solo (el panel
+  // seguia diciendo 62 con un titulo largo que el auto-fit bajo a 26).
+  // / N1: the flag no longer guards the WHOLE title block — it guards each
+  // control on its own. Before, fixing only "Letter spacing" set
+  // state.titleStyle = {charSpacing:60} and that also blocked size, color
+  // and font, which auto-fit CAN change on its own (the panel kept saying
+  // 62 with a long title that auto-fit had shrunk to 26).
+  const ts = state.titleStyle;
+  if (state.titleObject) {
+    if (!ts || ts.fontSize === undefined) {
+      const sizeInput = document.getElementById('titleSize');
+      sizeInput.value = Math.round(state.titleObject.fontSize);
+      document.getElementById('titleSizeValue').textContent = sizeInput.value;
+    }
+    if (!ts || ts.charSpacing === undefined) {
+      const spacingInput = document.getElementById('titleSpacing');
+      spacingInput.value = state.titleObject.charSpacing || 0;
+      document.getElementById('titleSpacingValue').textContent = spacingInput.value;
+    }
+    if (!ts || ts.fill === undefined) {
+      document.getElementById('titleColor').value = state.titleObject.fill;
+    }
+    if (!ts || ts.fontFamily === undefined) {
+      const fontSelect = document.getElementById('titleFont');
+      const tieneOpcion = Array.from(fontSelect.options).some(o => o.value === state.titleObject.fontFamily);
+      if (tieneOpcion) fontSelect.value = state.titleObject.fontFamily;
+    }
   }
   if (state.authorObject && !state.authorStyle) {
     document.getElementById('authorColor').value = state.authorObject.fill;
@@ -1157,6 +1173,19 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   state.ornamentOculto = false; // T8
   state.titleStyle = null; // T3/T11 (M1)
   state.authorStyle = null; // T3/T11 (M1)
+  // N2: Reset no tocaba estos dos sliders del bloque EFECTOS porque nadie
+  // los "toca" via su propio handler — hay que ponerlos en el valor por
+  // defecto de index.html (6 y 52) ANTES de applyTemplate, para que
+  // applyShadow/applyOverlay (que leen el slider, no un estado) los recojan.
+  // / N2: Reset never touched these two EFFECTS sliders because nothing
+  // "touches" them via their own handler — they must be set back to
+  // index.html's default (6 and 52) BEFORE applyTemplate, so
+  // applyShadow/applyOverlay (which read the slider, not a state var) pick
+  // them up.
+  document.getElementById('titleShadow').value = 6;
+  document.getElementById('shadowValue').textContent = '6';
+  document.getElementById('overlayOpacity').value = 52;
+  document.getElementById('overlayValue').textContent = '52%';
   // T11 (M1): antes Reset pintaba el degradado dorado pero dejaba resaltada
   // la miniatura de fondo elegida antes (p. ej. "Business") — el panel
   // mentia sobre cual fondo estaba puesto de verdad.
