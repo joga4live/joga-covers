@@ -774,12 +774,20 @@ function renderBackgrounds() {
     container.appendChild(div);
   });
 
-  // Botón upload
-  const upload = document.createElement('div');
+  // Botón upload — v: <label for="uploadBg"> en vez de un div con
+  // onclick + input.click(). Un <label> asociado a un <input type="file">
+  // abre el selector de archivos de forma nativa; el div con .click() por
+  // JS a veces no abría nada, sin ningun error en consola, y no habia forma
+  // de saber por que desde fuera. / v: <label for="uploadBg"> instead of a
+  // div with onclick + input.click(). A <label> tied to a file <input>
+  // opens the file picker natively; the div calling .click() via JS
+  // sometimes opened nothing, with no console error, and there was no way
+  // to tell why from the outside.
+  const upload = document.createElement('label');
+  upload.setAttribute('for', 'uploadBg');
   upload.className = 'bg-thumb upload';
   upload.innerHTML = '+';
   upload.title = 'Subir imagen';
-  upload.onclick = () => document.getElementById('uploadBg').click();
   container.appendChild(upload);
 }
 
