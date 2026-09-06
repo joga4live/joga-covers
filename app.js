@@ -33,6 +33,24 @@ const state = {
   titleOverride: null,
   subtitleOverride: null,
   authorOverride: null,
+  // T8: igual que titleOverride, pero para el ornamento (◆ ❦ ★…); y
+  // ornamentOculto para cuando el usuario lo borra con Delete — addOrnament
+  // no debe repintarlo hasta un cambio de plantilla de verdad o Reset.
+  // / T8: same idea as titleOverride, but for the ornament (◆ ❦ ★…); and
+  // ornamentOculto for when the user deletes it — addOrnament must not
+  // repaint it until a genuine template switch or Reset.
+  ornamentOverride: null,
+  ornamentOculto: false,
+  // T3: fuente/color/tamaño/espaciado elegidos a mano en el panel. Sin esto,
+  // el siguiente applyTemplate() (una letra escrita en cualquier campo) los
+  // revertia a los valores fijos de la plantilla — el panel seguia
+  // mostrando lo elegido pero el lienzo volvia atras.
+  // / T3: font/color/size/spacing chosen by hand in the panel. Without this,
+  // the next applyTemplate() (one letter typed in any field) reverted them
+  // to the template's fixed values — the panel kept showing the choice but
+  // the canvas snapped back.
+  titleStyle: null,
+  authorStyle: null,
   lastAppliedTemplate: null
 };
 
@@ -505,6 +523,11 @@ const backgrounds = {
 function setTitleStyle(opts) {
   const text = document.getElementById('titleInput').value;
   if (state.titleObject) canvas.remove(state.titleObject);
+  // T5 (I3): sin este `return`, un titulo vacio igual creaba un Textbox de
+  // 521x89 px que se tragaba los clics — subtitulo y autor ya lo tenian.
+  // / T5 (I3): without this `return`, an empty title still created a
+  // 521x89 px Textbox that ate clicks — subtitle and author already had it.
+  if (!text) { state.titleObject = null; return; }
   const maxWidth = opts.originX === 'left' ? 480 : 520;
   // v4: el titulo puede ocupar DOS lineas antes de encogerse.
   // Antes se medía con fabric.Text, que es de una sola linea, asi que el
@@ -558,6 +581,11 @@ function setTitleStyle(opts) {
     shadow: null,
     editable: true
   });
+  // T3 (I1): el estilo elegido a mano gana sobre el auto-ajuste de la
+  // plantilla — el usuario lo eligio a proposito, incluido el tamano.
+  // / T3 (I1): the hand-chosen style wins over the template's auto-fit — the
+  // user picked it on purpose, size included.
+  if (state.titleStyle) state.titleObject.set(state.titleStyle);
   if (state.titleOverride) state.titleObject.set(state.titleOverride);
   applyShadow(state.titleObject);
   canvas.add(state.titleObject);
@@ -566,7 +594,10 @@ function setTitleStyle(opts) {
 function setSubtitleStyle(opts) {
   const text = document.getElementById('subtitleInput').value;
   if (state.subtitleObject) canvas.remove(state.subtitleObject);
-  if (!text) return;
+  // T5 (I3): dejaba la referencia vieja de un objeto ya quitado del lienzo.
+  // / T5 (I3): used to leave a stale reference to an object already removed
+  // from the canvas.
+  if (!text) { state.subtitleObject = null; return; }
   state.subtitleObject = new fabric.Textbox(text, {
     width: opts.originX === 'left' ? 480 : 500,
     left: opts.left !== undefined ? opts.left : 300,
@@ -589,7 +620,11 @@ function setSubtitleStyle(opts) {
 function setAuthorStyle(opts) {
   const text = document.getElementById('authorInput').value;
   if (state.authorObject) canvas.remove(state.authorObject);
-  if (!text) return;
+  // T5 (I3): igual que titulo/subtitulo — sin esto quedaba la referencia
+  // vieja de un objeto ya quitado del lienzo.
+  // / T5 (I3): same as title/subtitle — without this a stale reference to an
+  // already-removed object was left behind.
+  if (!text) { state.authorObject = null; return; }
   state.authorObject = new fabric.Textbox(text.toUpperCase(), {
     width: opts.originX === 'left' ? 480 : 500,
     left: opts.left !== undefined ? opts.left : 300,
@@ -603,12 +638,21 @@ function setAuthorStyle(opts) {
     charSpacing: opts.charSpacing || 0,
     editable: true
   });
+  // T3 (I1): el color de autor elegido a mano tambien se revertia solo.
+  // / T3 (I1): the hand-chosen author color also used to revert on its own.
+  if (state.authorStyle) state.authorObject.set(state.authorStyle);
   if (state.authorOverride) state.authorObject.set(state.authorOverride);
   canvas.add(state.authorObject);
 }
 
 function addOrnament(char, top, size, color) {
   if (state.ornamentObject) canvas.remove(state.ornamentObject);
+  state.ornamentObject = null;
+  // T8 (M2): si el usuario lo borro con Delete, no se repinta hasta un
+  // cambio de plantilla de verdad o Reset (limpiado en applyTemplate).
+  // / T8 (M2): if the user deleted it with Delete, it stays hidden until a
+  // genuine template switch or Reset (cleared in applyTemplate).
+  if (state.ornamentOculto) return;
   state.ornamentObject = new fabric.Text(char, {
     left: 300,
     originX: 'center',
@@ -618,6 +662,9 @@ function addOrnament(char, top, size, color) {
     fill: color,
     selectable: true
   });
+  // T8 (M2): el arrastre a mano tambien se perdia al escribir una letra.
+  // / T8 (M2): the hand-dragged position was also lost on every keystroke.
+  if (state.ornamentOverride) state.ornamentObject.set(state.ornamentOverride);
   canvas.add(state.ornamentObject);
 }
 
@@ -625,6 +672,30 @@ function removeOrnament() {
   if (state.ornamentObject) {
     canvas.remove(state.ornamentObject);
     state.ornamentObject = null;
+  }
+}
+
+// T2 (C2/C3): en un contexto no seguro (file://, o una IP local sin TLS,
+// como al probar desde el celular) `navigator.clipboard` NO EXISTE — es
+// `undefined`. Entonces `.writeText(...)` lanza un TypeError SINCRONO, antes
+// de que exista ninguna promesa, y un `.catch()` colgado de esa llamada
+// nunca llega a correr. Por eso el try/catch es obligatorio, no cosmetico.
+// Nunca rechaza: siempre resuelve true/false para que quien llama pueda
+// hacer `.then()` sin preocuparse de un catch aparte.
+// / T2 (C2/C3): in an insecure context (file://, or a local IP without TLS,
+// e.g. testing from a phone) `navigator.clipboard` DOES NOT EXIST — it is
+// `undefined`. So `.writeText(...)` throws a SYNCHRONOUS TypeError before any
+// promise exists, and a `.catch()` hung off that call never runs. That is
+// why the try/catch is mandatory, not decorative. Never rejects: it always
+// resolves true/false so callers can `.then()` without a separate catch.
+function copiarAlPortapapeles(texto) {
+  try {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) {
+      return Promise.resolve(false);
+    }
+    return navigator.clipboard.writeText(texto).then(() => true).catch(() => false);
+  } catch (err) {
+    return Promise.resolve(false);
   }
 }
 
@@ -637,6 +708,12 @@ function applyShadow(obj) {
       offsetX: 0,
       offsetY: shadowVal / 2
     }));
+  } else {
+    // T6 (I4): sin este else, bajar el slider a 0 dejaba la sombra puesta —
+    // solo desaparecia si por casualidad se escribia otra letra despues.
+    // / T6 (I4): without this else, dragging the slider to 0 left the shadow
+    // in place — it only vanished if another letter happened to be typed.
+    obj.set('shadow', null);
   }
 }
 
@@ -720,15 +797,53 @@ function applyTemplate(id) {
     state.titleOverride = null;
     state.subtitleOverride = null;
     state.authorOverride = null;
+    state.ornamentOverride = null; // T8
+    state.ornamentOculto = false; // T8
+    state.titleStyle = null; // T3
+    state.authorStyle = null; // T3
   }
   state.currentTemplate = id;
   templates[id].apply();
   applyOverlay();
   canvas.renderAll();
+  sincronizarPanelConEstilo(); // T11 (M3)
   state.lastAppliedTemplate = id;
   document.querySelectorAll('.template-card').forEach(c => {
     c.classList.toggle('active', c.dataset.id === id);
   });
+}
+
+// T11 (M3): tras aplicar la plantilla, el panel debe mostrar lo que
+// REALMENTE quedo en el lienzo — el auto-ajuste de setTitleStyle puede bajar
+// el tamano (78 -> 62 en la plantilla por defecto), y el panel seguia
+// mostrando el valor fijo del HTML. Solo se toca si el usuario no eligio un
+// estilo a mano (state.titleStyle/authorStyle): si lo hizo, el panel ya
+// muestra su eleccion y no hay que pisarla.
+// / T11 (M3): after applying the template, the panel must show what
+// ACTUALLY landed on the canvas — setTitleStyle's auto-fit can shrink the
+// size (78 -> 62 in the default template), and the panel kept showing the
+// HTML's fixed value. Only touched when the user has not chosen a style by
+// hand (state.titleStyle/authorStyle): if they did, the panel already shows
+// their pick and must not be overwritten.
+function sincronizarPanelConEstilo() {
+  if (state.titleObject && !state.titleStyle) {
+    const sizeInput = document.getElementById('titleSize');
+    sizeInput.value = Math.round(state.titleObject.fontSize);
+    document.getElementById('titleSizeValue').textContent = sizeInput.value;
+
+    const spacingInput = document.getElementById('titleSpacing');
+    spacingInput.value = state.titleObject.charSpacing || 0;
+    document.getElementById('titleSpacingValue').textContent = spacingInput.value;
+
+    document.getElementById('titleColor').value = state.titleObject.fill;
+
+    const fontSelect = document.getElementById('titleFont');
+    const tieneOpcion = Array.from(fontSelect.options).some(o => o.value === state.titleObject.fontFamily);
+    if (tieneOpcion) fontSelect.value = state.titleObject.fontFamily;
+  }
+  if (state.authorObject && !state.authorStyle) {
+    document.getElementById('authorColor').value = state.authorObject.fill;
+  }
 }
 
 // v: guarda la posicion/tamano a mano en cuanto el usuario suelta el arrastre
@@ -738,10 +853,111 @@ function applyTemplate(id) {
 canvas.on('object:modified', (e) => {
   const obj = e.target;
   if (!obj) return;
-  const snapshot = { left: obj.left, top: obj.top, scaleX: obj.scaleX, scaleY: obj.scaleY, angle: obj.angle };
+  // T4 (I2): un Textbox cambia `width` (no `scaleX`) cuando se arrastra una
+  // asa LATERAL (ml/mr) — que es justo como se achica el titulo para que
+  // quepa. Sin `width` aqui, ese arrastre se perdia Y ademas el titulo
+  // quedaba descentrado (el `left` guardado si se reaplicaba, pero contra
+  // el ancho viejo de la plantilla).
+  // / T4 (I2): a Textbox changes `width` (not `scaleX`) when a SIDE handle
+  // (ml/mr) is dragged — exactly how the title gets narrowed to fit.
+  // Without `width` here, that drag was lost AND the title ended up
+  // off-centre (the saved `left` still got re-applied, but against the
+  // template's old width).
+  const snapshot = { left: obj.left, top: obj.top, width: obj.width, scaleX: obj.scaleX, scaleY: obj.scaleY, angle: obj.angle };
   if (obj === state.titleObject) state.titleOverride = snapshot;
   else if (obj === state.subtitleObject) state.subtitleOverride = snapshot;
   else if (obj === state.authorObject) state.authorOverride = snapshot;
+  else if (obj === state.ornamentObject) state.ornamentOverride = snapshot; // T8 (M2)
+});
+
+// T7 (I5): los tres setXStyle leen SIEMPRE el texto del <input>, nunca del
+// objeto. Si el usuario edita el titulo con doble clic sobre la portada (lo
+// que el README anuncia), el campo de la derecha no se enteraba, y en
+// cuanto se escribia en CUALQUIER campo el texto del lienzo volvia al valor
+// viejo del input. Este listener escribe target.text en el input SIN
+// disparar su evento 'input' (asignar .value no lo dispara) — si lo
+// disparara, applyTemplate() recrearia el objeto a media edicion y se
+// perderia el cursor. / T7 (I5): all three setXStyle ALWAYS read the text
+// from the <input>, never from the object. If the user edits the title with
+// a double click on the cover (which the README advertises), the field on
+// the right never found out, and typing in ANY field snapped the canvas
+// text back to the input's old value. This listener writes target.text into
+// the input WITHOUT firing its 'input' event (assigning .value does not
+// fire it) — if it did, applyTemplate() would recreate the object mid-edit
+// and the live cursor would be lost.
+canvas.on('text:changed', (e) => {
+  const obj = e.target;
+  let inputId = null;
+  if (obj === state.titleObject) inputId = 'titleInput';
+  else if (obj === state.subtitleObject) inputId = 'subtitleInput';
+  else if (obj === state.authorObject) inputId = 'authorInput';
+  if (!inputId) return;
+  document.getElementById(inputId).value = obj.text;
+});
+
+// v: seleccionar el titulo/subtitulo/autor en el lienzo y darle a
+// Delete/Backspace no hacia NADA — no habia ningun listener de teclado.
+// Alguien que sube su propia portada (de Canva, por ejemplo) espera poder
+// borrar asi el texto que sobra encima, como en cualquier editor de diseno.
+// Si el objeto esta en modo de edicion de texto (cursor parpadeando dentro),
+// se deja que Backspace borre letras como siempre — solo se borra el campo
+// completo cuando el objeto esta SELECCIONADO por fuera (con las asas).
+// / v: selecting the title/subtitle/author on the canvas and pressing
+// Delete/Backspace did NOTHING — there was no keyboard listener at all.
+// Someone who uploads their own cover (from Canva, say) expects to be able
+// to delete the leftover text on top of it, like in any design editor. If
+// the object is in inline text-edit mode (blinking cursor inside), Backspace
+// still deletes letters as normal — the whole field only clears when the
+// object is SELECTED from outside (with the resize handles).
+document.addEventListener('keydown', (e) => {
+  // T9 (M5): Escape cierra el modal de Canva sin importar donde este el foco
+  // — NO lo bloquea el guard de abajo (C1), porque el usuario puede tener el
+  // cursor en un campo de la derecha y aun asi querer cerrar el modal.
+  // / T9 (M5): Escape closes the Canva modal no matter where focus is — NOT
+  // blocked by the guard below (C1), because the user may have the cursor in
+  // a right-hand field and still want to close the modal.
+  if (e.key === 'Escape') {
+    if (canvaModal.classList.contains('active')) canvaModal.classList.remove('active');
+    return;
+  }
+  if (e.key !== 'Backspace' && e.key !== 'Delete') return;
+  // C1: este listener esta en `document`, o sea que ve CUALQUIER Backspace,
+  // incluido el que el usuario teclea dentro de un <input> para corregir una
+  // letra. Sin este guard, si el titulo seguia seleccionado en el lienzo,
+  // ese Backspace borraba el campo COMPLETO en vez de una letra. Tambien se
+  // sale si el modal de Canva esta abierto (evita borrar el titulo por
+  // detras del modal). / C1: this listener lives on `document`, so it sees
+  // ANY Backspace, including one typed inside an <input> to fix a letter.
+  // Without this guard, if the title was still selected on the canvas, that
+  // Backspace cleared the WHOLE field instead of one letter. Also bails if
+  // the Canva modal is open (avoids deleting the title behind it).
+  const dst = e.target;
+  if (dst && (dst.tagName === 'INPUT' || dst.tagName === 'TEXTAREA' || dst.tagName === 'SELECT' || dst.isContentEditable)) return;
+  if (canvaModal.classList.contains('active')) return;
+  const obj = canvas.getActiveObject();
+  if (!obj || obj.isEditing) return;
+  if (obj === state.ornamentObject) {
+    // T8 (M2): el ornamento no tiene campo de texto que vaciar — se oculta
+    // hasta un cambio de plantilla de verdad o Reset (ver addOrnament).
+    // / T8 (M2): the ornament has no text field to clear — it stays hidden
+    // until a genuine template switch or Reset (see addOrnament).
+    e.preventDefault();
+    canvas.remove(state.ornamentObject);
+    state.ornamentObject = null;
+    state.ornamentOculto = true;
+    canvas.discardActiveObject();
+    canvas.renderAll();
+    return;
+  }
+  let inputId = null;
+  if (obj === state.titleObject) inputId = 'titleInput';
+  else if (obj === state.subtitleObject) inputId = 'subtitleInput';
+  else if (obj === state.authorObject) inputId = 'authorInput';
+  if (!inputId) return;
+  e.preventDefault();
+  document.getElementById(inputId).value = '';
+  canvas.discardActiveObject();
+  applyTemplate(state.currentTemplate);
 });
 
 // ================================
@@ -816,19 +1032,35 @@ document.getElementById('titleInput').addEventListener('input', () => applyTempl
 document.getElementById('subtitleInput').addEventListener('input', () => applyTemplate(state.currentTemplate));
 document.getElementById('authorInput').addEventListener('input', () => applyTemplate(state.currentTemplate));
 
+// T3 (I1): cada handler guarda su eleccion en state.titleStyle/authorStyle,
+// ademas de pintarla al toque en el objeto vivo. Sin el state, la proxima
+// letra escrita (applyTemplate → setTitleStyle) recreaba el objeto con los
+// valores de la plantilla y la eleccion se perdia — el panel seguia
+// mostrando lo elegido pero el lienzo volvia atras.
+// / T3 (I1): each handler saves its choice into state.titleStyle/authorStyle,
+// besides painting it on the live object right away. Without the state, the
+// next keystroke (applyTemplate → setTitleStyle) recreated the object with
+// the template's values and the choice was lost — the panel kept showing
+// the pick but the canvas snapped back.
 document.getElementById('titleFont').addEventListener('change', (e) => {
+  if (!state.titleStyle) state.titleStyle = {};
+  state.titleStyle.fontFamily = e.target.value;
   if (state.titleObject) {
     state.titleObject.set('fontFamily', e.target.value);
     canvas.renderAll();
   }
 });
 document.getElementById('titleColor').addEventListener('input', (e) => {
+  if (!state.titleStyle) state.titleStyle = {};
+  state.titleStyle.fill = e.target.value;
   if (state.titleObject) {
     state.titleObject.set('fill', e.target.value);
     canvas.renderAll();
   }
 });
 document.getElementById('authorColor').addEventListener('input', (e) => {
+  if (!state.authorStyle) state.authorStyle = {};
+  state.authorStyle.fill = e.target.value;
   if (state.authorObject) {
     state.authorObject.set('fill', e.target.value);
     canvas.renderAll();
@@ -836,6 +1068,8 @@ document.getElementById('authorColor').addEventListener('input', (e) => {
 });
 document.getElementById('titleSize').addEventListener('input', (e) => {
   document.getElementById('titleSizeValue').textContent = e.target.value;
+  if (!state.titleStyle) state.titleStyle = {};
+  state.titleStyle.fontSize = parseInt(e.target.value);
   if (state.titleObject) {
     state.titleObject.set('fontSize', parseInt(e.target.value));
     canvas.renderAll();
@@ -843,6 +1077,8 @@ document.getElementById('titleSize').addEventListener('input', (e) => {
 });
 document.getElementById('titleSpacing').addEventListener('input', (e) => {
   document.getElementById('titleSpacingValue').textContent = e.target.value;
+  if (!state.titleStyle) state.titleStyle = {};
+  state.titleStyle.charSpacing = parseInt(e.target.value);
   if (state.titleObject) {
     state.titleObject.set('charSpacing', parseInt(e.target.value));
     canvas.renderAll();
@@ -860,11 +1096,25 @@ document.getElementById('titleShadow').addEventListener('input', (e) => {
   }
 });
 
+// T11 (M1): subir una imagen (por el "+" o arrastrandola) no corresponde a
+// NINGUNA miniatura de fondo prefijado — antes se quedaba resaltada la
+// ultima que se habia tocado (p. ej. "Dorado"), y el panel mentia.
+// / T11 (M1): uploading an image (via the "+" or by dragging it) matches
+// NONE of the preset thumbnails — before, the last one touched (e.g.
+// "Gold") stayed highlighted, and the panel lied.
+function marcarFondoPersonalizado() {
+  state.currentBg = 'custom';
+  document.querySelectorAll('.bg-thumb').forEach(t => t.classList.remove('active'));
+}
+
 document.getElementById('uploadBg').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = (ev) => setImageBg(ev.target.result);
+  reader.onload = (ev) => {
+    setImageBg(ev.target.result);
+    marcarFondoPersonalizado();
+  };
   reader.readAsDataURL(file);
 });
 
@@ -875,7 +1125,10 @@ document.querySelector('.canvas-area').addEventListener('drop', (e) => {
   const file = e.dataTransfer.files[0];
   if (!file || !file.type.startsWith('image/')) return;
   const reader = new FileReader();
-  reader.onload = (ev) => setImageBg(ev.target.result);
+  reader.onload = (ev) => {
+    setImageBg(ev.target.result);
+    marcarFondoPersonalizado();
+  };
   reader.readAsDataURL(file);
 });
 
@@ -900,7 +1153,21 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   state.titleOverride = null;
   state.subtitleOverride = null;
   state.authorOverride = null;
+  state.ornamentOverride = null; // T8
+  state.ornamentOculto = false; // T8
+  state.titleStyle = null; // T3/T11 (M1)
+  state.authorStyle = null; // T3/T11 (M1)
+  // T11 (M1): antes Reset pintaba el degradado dorado pero dejaba resaltada
+  // la miniatura de fondo elegida antes (p. ej. "Business") — el panel
+  // mentia sobre cual fondo estaba puesto de verdad.
+  // / T11 (M1): before, Reset painted the gold gradient but left the
+  // previously-chosen thumbnail highlighted (e.g. "Business") — the panel
+  // lied about which background was actually applied.
+  state.currentBg = 'solid-gold';
   setGradientBg(backgrounds['solid-gold'].colors, backgrounds['solid-gold'].angle);
+  document.querySelectorAll('.bg-thumb').forEach(t => t.classList.remove('active'));
+  const goldThumb = document.querySelector('.bg-thumb.solid-gold');
+  if (goldThumb) goldThumb.classList.add('active');
   applyTemplate('editorial-gold');
 });
 
@@ -936,25 +1203,33 @@ document.getElementById('promptPreset').addEventListener('change', (e) => {
 
 document.getElementById('iaGenerate').addEventListener('click', () => {
   // v: renombrado de "prompt" a "promptText" — el nombre "prompt" tapaba la
-  // funcion global window.prompt() de mas abajo, y el boton tronaba en
-  // silencio si el portapapeles fallaba (Safari sin permiso, http sin TLS).
+  // funcion global window.prompt() de mas abajo.
+  // T2 (C2): ESTE comentario antes decia que el arreglo cubria "http sin
+  // TLS" — no era cierto, ese era justo el caso que seguia roto (el
+  // .catch() nunca corria porque el TypeError era sincrono). Ahora se usa
+  // copiarAlPortapapeles(), que atrapa ese caso con try/catch de verdad.
   // / v: renamed "prompt" to "promptText" — the name "prompt" shadowed the
-  // global window.prompt() below, silently crashing the button whenever the
-  // clipboard write failed (Safari without permission, http without TLS).
+  // global window.prompt() below.
+  // T2 (C2): THIS comment used to claim the fix covered "http without TLS"
+  // — it did not, that was exactly the case still broken (the .catch()
+  // never ran because the TypeError was synchronous). Now it uses
+  // copiarAlPortapapeles(), which actually catches that case with try/catch.
   const promptText = document.getElementById('iaPrompt').value.trim();
   if (!promptText) {
     showToast('⚠️ Escribe o elige un prompt primero');
     return;
   }
-  navigator.clipboard.writeText(promptText).then(() => {
-    showToast('✓ Prompt copiado — pégalo en Higgsfield con Cmd+V');
-    setTimeout(() => {
+  copiarAlPortapapeles(promptText).then((ok) => {
+    if (ok) {
+      showToast('✓ Prompt copiado — pégalo en Higgsfield con Cmd+V');
+      setTimeout(() => {
+        window.open('https://higgsfield.ai/es/ai/image?model=gpt_image_2', '_blank', 'noopener,noreferrer');
+      }, 600);
+    } else {
+      // Fallback: mostrar el prompt para copiar a mano
+      window.prompt('Copia manualmente:', promptText);
       window.open('https://higgsfield.ai/es/ai/image?model=gpt_image_2', '_blank', 'noopener,noreferrer');
-    }, 600);
-  }).catch(() => {
-    // Fallback: mostrar el prompt
-    window.prompt('Copia manualmente:', promptText);
-    window.open('https://higgsfield.ai/es/ai/image?model=gpt_image_2', '_blank');
+    }
   });
 });
 
@@ -1004,19 +1279,32 @@ document.getElementById('modalContinue').addEventListener('click', () => {
   const bookSubtitle = document.getElementById('subtitleInput').value;
   const bookAuthor = document.getElementById('authorInput').value;
   const clipboardText = `${bookTitle}\n${bookSubtitle}\n${bookAuthor}`;
-  navigator.clipboard.writeText(clipboardText).catch(() => {});
 
   // 3. Abrir Canva con el preset elegido en una nueva pestaña
   const preset = document.getElementById('canvaPreset').value;
   const canvaUrl = canvaLinks[preset] || canvaLinks['book-covers'];
 
-  setTimeout(() => {
-    window.open(canvaUrl, '_blank', 'noopener,noreferrer');
-    canvaModal.classList.remove('active');
+  // T2 (C3): el `.catch(() => {})` de antes no atrapaba nada — en contexto
+  // no seguro el TypeError era sincrono y abortaba el handler A MEDIA FAENA:
+  // el PNG ya se habia descargado pero el setTimeout de abajo (abrir Canva,
+  // cerrar modal, toast) nunca llegaba a correr. copiarAlPortapapeles() SIGUE
+  // SIEMPRE al setTimeout, copie o no; si no pudo copiar, el toast lo dice.
+  // / T2 (C3): the old `.catch(() => {})` caught nothing — in an insecure
+  // context the TypeError was synchronous and aborted the handler HALFWAY:
+  // the PNG had already downloaded but the setTimeout below (open Canva,
+  // close modal, toast) never ran. copiarAlPortapapeles() ALWAYS proceeds to
+  // the setTimeout, whether or not it copied; if it could not, the toast says so.
+  copiarAlPortapapeles(clipboardText).then((copiado) => {
+    setTimeout(() => {
+      window.open(canvaUrl, '_blank', 'noopener,noreferrer');
+      canvaModal.classList.remove('active');
 
-    // Toast de confirmación
-    showToast('✓ Portada descargada · Título copiado · Abriendo Canva…');
-  }, 400);
+      // Toast de confirmación — sin "Título copiado" si la copia falló
+      showToast(copiado
+        ? '✓ Portada descargada · Título copiado · Abriendo Canva…'
+        : '✓ Portada descargada · Abriendo Canva…');
+    }, 400);
+  });
 });
 
 function showToast(msg) {

@@ -73,6 +73,17 @@
     }
     .btn.canva:hover { filter: brightness(1.15); }
 
+    /* T10 (M4): app.js:showToast() usa animation: toastIn 0.3s ease-out y
+       este keyframe no existia (grep -n keyframes: 0 resultados) — el toast
+       aparecia igual, solo sin la entrada suave. / T10 (M4): app.js's
+       showToast() uses animation: toastIn 0.3s ease-out and this keyframe
+       did not exist (grep -n keyframes: 0 hits) — the toast still appeared,
+       just without the smooth entry. */
+    @keyframes toastIn {
+      from { opacity: 0; transform: translate(-50%, 10px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
     /* Modal Canva */
     .modal-overlay {
       position: fixed;
@@ -307,6 +318,15 @@
       color: #6a6560;
       font-size: 24px;
       background: #1a1815;
+      /* T10 (M7): es un <label>, hereda la regla global de "label" de abajo
+         (margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px)
+         y le sobraba aire debajo, distinto de las demas miniaturas.
+         / T10 (M7): it's a <label>, so it inherits the global "label" rule
+         below (margin-bottom: 6px; text-transform: uppercase; letter-spacing:
+         .5px) and had extra space below it, unlike the other thumbnails. */
+      margin-bottom: 0;
+      text-transform: none;
+      letter-spacing: 0;
     }
     .bg-thumb.solid-gold {
       background: linear-gradient(135deg, #f7d478, #b8862c);

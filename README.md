@@ -11,7 +11,7 @@ Editor visual de portadas de libro — parte del ecosistema **Joga Book**.
 - **Fondos**: 4 gradientes prediseñados + upload de imagen custom + drag & drop
 - **Generación con IA**: 12 prompts sugeridos por género → apertura directa a Higgsfield
 - **Integración Canva**: Deep link a templates de portada con 5 formatos (Kindle, eBook, Wattpad, Revista, genérico)
-- **Export a 300 DPI** (1600×2400 px, calidad print profesional)
+- **Export a 300 DPI** (1600×2560 px, calidad print profesional)
 - **Editor visual en tiempo real** (Fabric.js) — arrastra, redimensiona, edita texto directamente
 
 ## Uso local
