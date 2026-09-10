@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Joga Covers — Editor de Portadas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700;9..144,900&family=Playfair+Display:wght@400;700;900&family=Cormorant+Garamond:wght@300;500;700&family=Inter:wght@300;400;600;800&family=Bebas+Neue&family=Cinzel:wght@400;600;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:     #C9A84C;
+      --gold-2:   #E8C97A;
+      --gold-dim: rgba(201,168,76,0.12);
+      --dark:     #0C0B09;
+      --dark-2:   #131210;
+      --dark-3:   #1C1A17;
+      --dark-4:   #242118;
+      --border:   rgba(255,255,255,0.06);
+      --border-g: rgba(201,168,76,0.22);
+      --text:     #F5F0E8;
+      --text-2:   #A89880;
+      --text-3:   #5C5040;
+      --r:        6px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 300px 1fr 300px;
+      grid-template-rows: 58px 1fr;
+      grid-template-areas:
+        "header header header"
+        "left canvas right";
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      grid-area: header;
+      background: var(--dark-2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+      position: relative;
+    }
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold-dim), transparent);
+    }
+    header h1 {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+    header h1 em {
+      color: var(--gold);
+      font-style: normal;
+    }
+    header .brand-dot {
+      width: 6px; height: 6px;
+      background: var(--gold);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--gold);
+    }
+    header .spacer { flex: 1; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      padding: 7px 15px;
+      border-radius: var(--r);
+      border: 1px solid var(--border);
+      background: var(--dark-3);
+      color: var(--text-2);
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: all 0.18s;
+    }
+    .btn:hover {
+      background: var(--dark-4);
+      border-color: rgba(255,255,255,0.12);
+      color: var(--text);
+    }
+    .btn.primary {
+      background: linear-gradient(135deg, var(--gold), #B8862C);
+      border-color: var(--gold);
+      color: #0C0B09;
+      font-weight: 700;
+      box-shadow: 0 0 20px rgba(201,168,76,0.25);
+    }
+    .btn.primary:hover {
+      box-shadow: 0 0 30px rgba(201,168,76,0.45);
+      filter: brightness(1.08);
+    }
+    .btn.canva {
+      background: linear-gradient(135deg, #00c4cc, #7d2ae8);
+      border-color: transparent;
+      color: white;
+      font-weight: 600;
+    }
+    .btn.canva:hover { filter: brightness(1.15); }
+
+    /* T10 (M4): app.js:showToast() usa animation: toastIn 0.3s ease-out y
+       este keyframe no existia (grep -n keyframes: 0 resultados) — el toast
+       aparecia igual, solo sin la entrada suave. / T10 (M4): app.js's
+       showToast() uses animation: toastIn 0.3s ease-out and this keyframe
+       did not exist (grep -n keyframes: 0 hits) — the toast still appeared,
+       just without the smooth entry. */
+    @keyframes toastIn {
+      from { opacity: 0; transform: translate(-50%, 10px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.82);
+      backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: var(--dark-3);
+      border: 1px solid var(--border-g);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 500px;
+      width: calc(100% - 40px);
+      color: var(--text);
+      position: relative;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.7);
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      background: transparent; border: none;
+      color: var(--text-3); font-size: 22px; cursor: pointer; line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .modal-header .canva-logo {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, #00c4cc, #7d2ae8);
+      border-radius: 8px; display: flex; align-items: center;
+      justify-content: center; color: white; font-weight: 900; font-size: 17px;
+    }
+    .modal h2 { font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 700; }
+    .modal-steps { list-style: none; counter-reset: step; margin-bottom: 24px; }
+    .modal-steps li {
+      counter-increment: step; display: flex; gap: 14px;
+      padding: 11px 0; border-bottom: 1px solid var(--border);
+      font-size: 13px; line-height: 1.5;
+    }
+    .modal-steps li:last-child { border-bottom: none; }
+    .modal-steps li::before {
+      content: counter(step);
+      background: linear-gradient(135deg, #00c4cc, #7d2ae8);
+      color: white; width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 11px; flex-shrink: 0;
+    }
+    .modal-steps strong { color: var(--text); display: block; margin-bottom: 2px; }
+    .modal-steps span { color: var(--text-2); font-size: 11px; display: block; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+    .modal-preset-select {
+      background: var(--dark); border: 1px solid var(--border);
+      color: var(--text); padding: 8px 12px; border-radius: var(--r);
+      width: 100%; margin-bottom: 16px; font-family: inherit; font-size: 13px;
+    }
+    .modal-preset-label {
+      display: block; font-size: 10px; color: var(--text-2);
+      margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    /* ── SIDEPANELS ── */
+    aside {
+      background: var(--dark-2);
+      padding: 18px 16px;
+      overflow-y: auto;
+      border-right: 1px solid var(--border);
+    }
+    aside.right { border-right: none; border-left: 1px solid var(--border); }
+
+    aside h3 {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: var(--gold);
+      margin-bottom: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    aside h3::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-g);
+    }
+    aside section { margin-bottom: 28px; }
+
+    /* ── CANVAS AREA ── */
+    .canvas-area {
+      grid-area: canvas;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(ellipse at 60% 40%, rgba(201,168,76,0.03) 0%, transparent 60%),
+        repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.025) 39px, rgba(255,255,255,0.025) 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.025) 39px, rgba(255,255,255,0.025) 40px),
+        var(--dark);
+      overflow: hidden;
+      position: relative;
+    }
+    .canvas-wrapper {
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.05),
+        0 40px 100px rgba(0,0,0,0.8),
+        0 0 60px rgba(201,168,76,0.06);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    /* ── TEMPLATE CARDS ── */
+    .templates { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .template-card {
+      aspect-ratio: 2/3;
+      background: var(--dark-3);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+      transition: all 0.18s;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px; text-align: center; color: var(--text-3); padding: 8px;
+    }
+    .template-card:hover { border-color: rgba(201,168,76,0.3); background: var(--dark-4); transform: translateY(-1px); }
+    .template-card.active { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), inset 0 0 20px rgba(201,168,76,0.05); }
+    .template-card .preview {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; justify-content: center;
+      align-items: center; padding: 12px 8px; gap: 4px; color: white;
+    }
+    .template-card .tag {
+      position: absolute; bottom: 4px; left: 4px; right: 4px;
+      background: rgba(0,0,0,0.7);
+      color: var(--gold); font-size: 7px; padding: 2px 4px;
+      border-radius: 3px; text-align: center; letter-spacing: 0.5px;
+    }
+
+    /* ── BACKGROUNDS ── */
+    .backgrounds { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .bg-thumb {
+      aspect-ratio: 2/3;
+      background-size: cover; background-position: center;
+      background-color: var(--dark-3);
+      border: 1px solid var(--border);
+      border-radius: 5px; cursor: pointer;
+      transition: all 0.18s; position: relative; overflow: hidden;
+    }
+    .bg-thumb.active { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+    .bg-thumb:hover { border-color: rgba(201,168,76,0.35); transform: translateY(-1px); }
+    .bg-thumb .label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.92));
+      color: white; font-size: 9px; padding: 14px 6px 6px;
+      text-align: center; letter-spacing: 0.5px;
+    }
+    .bg-thumb.upload {
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-3); font-size: 22px; background: var(--dark-3);
+      margin-bottom: 0; text-transform: none; letter-spacing: 0;
+    }
+    .bg-thumb.solid-gold     { background: linear-gradient(135deg, #f7d478, #b8862c); }
+    .bg-thumb.solid-cream    { background: linear-gradient(135deg, #f5e9d0, #d4b884); }
+    .bg-thumb.solid-black    { background: linear-gradient(135deg, #1a1815, #3a3530); }
+    .bg-thumb.solid-burgundy { background: linear-gradient(135deg, #4a1a1a, #8b3a3a); }
+
+    /* ── INPUTS ── */
+    label {
+      display: block; font-size: 10px;
+      color: var(--text-2); margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
+    }
+    input[type="text"], textarea, select {
+      width: 100%;
+      background: var(--dark);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: var(--r);
+      font-family: inherit; font-size: 13px;
+      transition: border-color 0.18s;
+    }
+    input[type="text"]:focus, textarea:focus, select:focus {
+      outline: none; border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.08);
+    }
+    input[type="color"] {
+      width: 100%; height: 34px; background: transparent;
+      border: 1px solid var(--border); border-radius: var(--r); cursor: pointer;
+    }
+    input[type="range"] { width: 100%; accent-color: var(--gold); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .field { margin-bottom: 14px; }
+    .field-inline {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 11px; color: var(--text-2); margin-bottom: 5px;
+    }
+    .field-inline span:last-child { color: var(--gold); font-weight: 600; }
+
+    /* ── IA BOX ── */
+    .ia-box {
+      background: var(--dark);
+      border: 1px solid var(--border-g);
+      border-radius: 8px; padding: 12px; margin-bottom: 12px;
+    }
+    .ia-box textarea {
+      background: transparent; border: none; padding: 0;
+      font-size: 12px; resize: none; min-height: 56px; color: var(--text);
+    }
+    .ia-box textarea:focus { outline: none; }
+    .ia-box textarea::placeholder { color: var(--text-3); }
+    .ia-hint { font-size: 10px; color: var(--text-3); margin-top: 8px; font-style: italic; }
+
+    /* ── SCROLLBAR ── */
+    aside::-webkit-scrollbar { width: 4px; }
+    aside::-webkit-scrollbar-track { background: transparent; }
+    aside::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    aside::-webkit-scrollbar-thumb:hover { background: var(--border-g); }
+
+    /* ── MISC ── */
+    .empty-state {
+      text-align: center; color: var(--text-3); font-size: 11px;
+      padding: 20px; background: var(--dark); border-radius: var(--r);
+      border: 1px dashed var(--border);
+    }
+    .selection-info {
+      background: var(--dark); border: 1px solid var(--border-g);
+      padding: 10px; border-radius: var(--r); margin-bottom: 12px;
+      font-size: 11px; color: var(--gold); letter-spacing: 0.5px;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translate(-50%, 10px); }
+      to   { opacity: 1; transform: translate(-50%, 0); }
+    }
+  </style>
+
+</head>
+<body>
+  <header>
+    <div class="brand-dot"></div>
+    <h1><em>JOGA</em> COVERS</h1>
+    <div class="spacer"></div>
+    <button class="btn" id="resetBtn">Reset</button>
+    <button class="btn canva" id="canvaBtn">
+      <span style="display:inline-block;width:14px;height:14px;background:linear-gradient(135deg,#00c4cc,#7d2ae8);border-radius:3px;vertical-align:middle;margin-right:6px;"></span>
+      Continuar en Canva
+    </button>
+    <button class="btn primary" id="exportBtn">Descargar PNG</button>
+    <button class="btn" id="kdpBtn" style="background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3);">Guía Amazon KDP</button>
+  </header>
+
+  <aside class="left">
+    <section>
+      <h3>1. Fondo</h3>
+      <div class="backgrounds" id="backgrounds">
+        <!-- llenado por JS -->
+      </div>
+      <input type="file" id="uploadBg" accept="image/*" style="display:none">
+    </section>
+
+    <section>
+      <h3>Generar con IA (Higgsfield)</h3>
+      <div class="ia-box">
+        <label style="font-size:10px;color:#8a827a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;display:block;">Sugerencia rápida por género</label>
+        <select id="promptPreset" class="modal-preset-select" style="margin-bottom:10px;">
+          <option value="">— elige un estilo —</option>
+          <option value="editorial-gold">Editorial dorado premium</option>
+          <option value="thriller-dark">Thriller oscuro cinematográfico</option>
+          <option value="romance-soft">Romance suave y etéreo</option>
+          <option value="poetry-abstract">Poesía abstracta minimalista</option>
+          <option value="corporate-clean">Corporativo limpio geométrico</option>
+          <option value="memoir-vintage">Memoir vintage nostálgico</option>
+          <option value="dark-academic">Dark Academic biblioteca</option>
+          <option value="children-illustration">Ilustración infantil colorida</option>
+          <option value="mindfulness">Mindfulness meditación</option>
+          <option value="business-modern">Business moderno tech</option>
+          <option value="self-help-bold">Self-help bold impacto</option>
+          <option value="fantasy-epic">Fantasía épica</option>
+        </select>
+        <textarea id="iaPrompt" placeholder="Describe la portada: colores, elementos, estilo, mood..."></textarea>
+        <button class="btn primary" id="iaGenerate" style="width:100%;margin-top:10px;padding:10px;">
+          Copiar prompt y abrir Higgsfield
+        </button>
+        <div class="ia-hint">Genera la imagen en Higgsfield → descarga → arrastra al canvas ↓</div>
+      </div>
+    </section>
+
+    <section>
+      <h3>2. Templates</h3>
+      <div class="templates" id="templates">
+        <!-- llenado por JS -->
+      </div>
+    </section>
+  </aside>
+
+  <div class="canvas-area">
+    <div class="canvas-wrapper">
+      <canvas id="canvas" width="600" height="960"></canvas>
+    </div>
+  </div>
+
+  <aside class="right">
+    <section>
+      <h3>3. Contenido</h3>
+      <div class="field">
+        <label>Título</label>
+        <input type="text" id="titleInput" value="El Despertar Interior">
+      </div>
+      <div class="field">
+        <label>Subtítulo</label>
+        <input type="text" id="subtitleInput" value="Un viaje hacia la claridad mental">
+      </div>
+      <div class="field">
+        <label>Autor</label>
+        <input type="text" id="authorInput" value="Joga">
+      </div>
+    </section>
+
+    <section>
+      <h3>Tipografía</h3>
+      <div class="field">
+        <label>Fuente del título</label>
+        <select id="titleFont">
+          <option value="Fraunces">Fraunces</option>
+          <option value="Playfair Display">Playfair Display</option>
+          <option value="Cormorant Garamond">Cormorant Garamond</option>
+          <option value="Cinzel">Cinzel</option>
+          <option value="Bebas Neue">Bebas Neue</option>
+          <option value="Inter">Inter</option>
+        </select>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Color título</label>
+          <input type="color" id="titleColor" value="#f5f0e8">
+        </div>
+        <div class="field">
+          <label>Color autor</label>
+          <input type="color" id="authorColor" value="#d4a744">
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-inline">
+          <span>Tamaño título</span>
+          <span id="titleSizeValue">72</span>
+        </div>
+        <input type="range" id="titleSize" min="24" max="140" value="72">
+      </div>
+      <div class="field">
+        <div class="field-inline">
+          <span>Espaciado letras</span>
+          <span id="titleSpacingValue">0</span>
+        </div>
+        <input type="range" id="titleSpacing" min="-50" max="500" value="0">
+      </div>
+    </section>
+
+    <section>
+      <h3>Efectos</h3>
+      <div class="field">
+        <div class="field-inline">
+          <span>Oscurecer fondo</span>
+          <span id="overlayValue">52%</span>
+        </div>
+        <input type="range" id="overlayOpacity" min="0" max="90" value="52">
+      </div>
+      <div class="field">
+        <div class="field-inline">
+          <span>Sombra texto</span>
+          <span id="shadowValue">6</span>
+        </div>
+        <input type="range" id="titleShadow" min="0" max="30" value="6">
+      </div>
+    </section>
+  </aside>
+
+  <!-- Modal Canva -->
+  <div class="modal-overlay" id="canvaModal">
+    <div class="modal">
+      <button class="modal-close" id="modalClose">×</button>
+      <div class="modal-header">
+        <div class="canva-logo">C</div>
+        <h2>Continuar en Canva</h2>
+      </div>
+      <p style="color:#a8a09a;font-size:13px;margin-bottom:20px;line-height:1.5;">
+        Vamos a descargar tu diseño actual y abrir Canva con el template ideal para portadas de libro. Podrás editar todo con las herramientas premium de Canva.
+      </p>
+
+      <label class="modal-preset-label">Estilo de template en Canva</label>
+      <select id="canvaPreset" class="modal-preset-select">
+        <option value="book-covers">Portadas de libro (genérico)</option>
+        <option value="ebook-cover">Portada de eBook</option>
+        <option value="kindle-cover">Portada Kindle (2:3)</option>
+        <option value="wattpad-cover">Portada Wattpad</option>
+        <option value="magazine-cover">Portada de revista</option>
+      </select>
+
+      <ul class="modal-steps">
+        <li>
+          <div>
+            <strong>Descargamos tu portada actual como PNG</strong>
+            <span>Se guarda en tu carpeta de Descargas — la usarás en Canva</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Abrimos Canva con el template elegido</strong>
+            <span>Ya con dimensiones correctas y templates filtrados por libro</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>En Canva: Uploads → tu PNG</strong>
+            <span>La usas como fondo o punto de partida — con acceso a todos los assets de Canva</span>
+          </div>
+        </li>
+        <li>
+          <div>
+            <strong>Descargas la versión final desde Canva</strong>
+            <span>Alta resolución, lista para Amazon KDP, IngramSpark o donde publiques</span>
+          </div>
+        </li>
+      </ul>
+
+      <div class="modal-actions">
+        <button class="btn" id="modalCancel">Cancelar</button>
+        <button class="btn canva" id="modalContinue">Descargar y abrir Canva</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
