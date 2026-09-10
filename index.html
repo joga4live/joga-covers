@@ -73,6 +73,17 @@
     }
     .btn.canva:hover { filter: brightness(1.15); }
 
+    /* T10 (M4): app.js:showToast() usa animation: toastIn 0.3s ease-out y
+       este keyframe no existia (grep -n keyframes: 0 resultados) — el toast
+       aparecia igual, solo sin la entrada suave. / T10 (M4): app.js's
+       showToast() uses animation: toastIn 0.3s ease-out and this keyframe
+       did not exist (grep -n keyframes: 0 hits) — the toast still appeared,
+       just without the smooth entry. */
+    @keyframes toastIn {
+      from { opacity: 0; transform: translate(-50%, 10px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
     /* Modal Canva */
     .modal-overlay {
       position: fixed;
@@ -307,6 +318,15 @@
       color: #6a6560;
       font-size: 24px;
       background: #1a1815;
+      /* T10 (M7): es un <label>, hereda la regla global de "label" de abajo
+         (margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px)
+         y le sobraba aire debajo, distinto de las demas miniaturas.
+         / T10 (M7): it's a <label>, so it inherits the global "label" rule
+         below (margin-bottom: 6px; text-transform: uppercase; letter-spacing:
+         .5px) and had extra space below it, unlike the other thumbnails. */
+      margin-bottom: 0;
+      text-transform: none;
+      letter-spacing: 0;
     }
     .bg-thumb.solid-gold {
       background: linear-gradient(135deg, #f7d478, #b8862c);
@@ -434,7 +454,7 @@
       Continuar en Canva
     </button>
     <button class="btn primary" id="exportBtn">Descargar PNG</button>
-    <button class="btn" id="kdpBtn" style="background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3);">📘 Guía Amazon KDP</button>
+    <button class="btn" id="kdpBtn" style="background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3);">Guía Amazon KDP</button>
   </header>
 
   <aside class="left">
@@ -467,7 +487,7 @@
         </select>
         <textarea id="iaPrompt" placeholder="Describe la portada: colores, elementos, estilo, mood..."></textarea>
         <button class="btn primary" id="iaGenerate" style="width:100%;margin-top:10px;padding:10px;">
-          ✨ Copiar prompt y abrir Higgsfield
+          Copiar prompt y abrir Higgsfield
         </button>
         <div class="ia-hint">Genera la imagen en Higgsfield → descarga → arrastra al canvas ↓</div>
       </div>
@@ -483,7 +503,7 @@
 
   <div class="canvas-area">
     <div class="canvas-wrapper">
-      <canvas id="canvas" width="600" height="900"></canvas>
+      <canvas id="canvas" width="600" height="960"></canvas>
     </div>
   </div>
 
@@ -548,9 +568,9 @@
       <div class="field">
         <div class="field-inline">
           <span>Oscurecer fondo</span>
-          <span id="overlayValue">30%</span>
+          <span id="overlayValue">52%</span>
         </div>
-        <input type="range" id="overlayOpacity" min="0" max="90" value="30">
+        <input type="range" id="overlayOpacity" min="0" max="90" value="52">
       </div>
       <div class="field">
         <div class="field-inline">
