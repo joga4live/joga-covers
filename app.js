@@ -1,4 +1,4 @@
-// Joga Covers — editor de portadas
+// Jog-A Covers — editor de portadas
 // Canvas 600×960 — exporta a 1600×2560, que es la medida que pide Amazon KDP para
 // portada de ebook (proporcion 1.6). Antes era 600×900 -> 1600×2400 (proporcion 1.5):
 // Kindle lo reajustaba y recortaba o dejaba bandas. El multiplicador 2.667 NO cambia:
@@ -1371,24 +1371,24 @@ function showToast(msg) {
 }
 
 // ================================
-// INTEGRACIÓN JOGA BOOK (postMessage API)
+// INTEGRACIÓN JOG-A BOOK (postMessage API)
 // ================================
-// Cuando Joga Covers se abre en un iframe dentro de Joga Book,
+// Cuando Jog-A Covers se abre en un iframe dentro de Jog-A Book,
 // se comunican por window.postMessage para pasar datos ida/vuelta
 //
-// Joga Book puede enviar:
+// Jog-A Book puede enviar:
 //   { type: 'JOGA_COVERS_INIT', title, subtitle, author, genre }
-// Joga Covers responde con:
+// Jog-A Covers responde con:
 //   { type: 'JOGA_COVERS_READY' }
 //   { type: 'JOGA_COVERS_EXPORT', dataUrl, filename }
 
 const isEmbedded = window.self !== window.top;
 
 if (isEmbedded) {
-  // Notificar a Joga Book que ya estamos listos
+  // Notificar a Jog-A Book que ya estamos listos
   window.parent.postMessage({ type: 'JOGA_COVERS_READY' }, '*');
 
-  // Escuchar comandos de Joga Book
+  // Escuchar comandos de Jog-A Book
   window.addEventListener('message', (event) => {
     const msg = event.data;
     if (!msg || !msg.type) return;
@@ -1433,13 +1433,13 @@ if (isEmbedded) {
     }
   });
 
-  // Añadir botón "Guardar en Joga Book" cuando estamos embebidos
+  // Añadir botón "Guardar en Jog-A Book" cuando estamos embebidos
   document.addEventListener('DOMContentLoaded', () => {
     const exportBtn = document.getElementById('exportBtn');
     if (exportBtn) {
       const saveBtn = document.createElement('button');
       saveBtn.className = 'btn primary';
-      saveBtn.textContent = 'Guardar en Joga Book'; // v2: sin emoji, para que combine con Joga Books / no emoji, to match Joga Books
+      saveBtn.textContent = 'Guardar en Jog-A Book'; // v2: sin emoji, para que combine con Jog-A Books / no emoji, to match Jog-A Books
       saveBtn.style.cssText = 'background: linear-gradient(135deg, #d4a744, #b8862c); margin-right: 8px;';
       saveBtn.onclick = () => {
         window.postMessage({ type: 'JOGA_COVERS_REQUEST_EXPORT' }, '*');
@@ -1457,7 +1457,7 @@ document.fonts.ready.then(() => {
   renderTemplates();
   setGradientBg(backgrounds['solid-gold'].colors, backgrounds['solid-gold'].angle);
   
-  // Leer URL params (title, subtitle, author) si vienen de Joga Books
+  // Leer URL params (title, subtitle, author) si vienen de Jog-A Books
   const params = new URLSearchParams(window.location.search);
   if (params.get('title')) document.getElementById('titleInput').value = params.get('title');
   if (params.get('subtitle')) document.getElementById('subtitleInput').value = params.get('subtitle');
